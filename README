@@ -1,0 +1,38 @@
+ChalkProxy - manages test web servers
+
+ChalkProxy solves the problem keeping track of multiple test servers
+which run on different machines and/or ports. 
+
+Each server registers with ChalkProxy so that ChalkProxy can show
+a list of all servers and ChalkProxy proxies for them so that the
+URLs includes a meaningful name for the server you are using.
+
+Features:
+ -Supports IE7+, Chrome & Firefox 
+ -Chalkboard page is self updating (using websockets)
+ -Servers can register arbitrary properties to include in the page (branch/release/user)
+ -programmatic access to all servers is available at /list
+ 
+Requirements:
+ -Java 6+
+ -Scala 2.8+
+ -Linux (although writing a windows start script would probably be easy)
+ 
+Running:
+ -git clone https://github.com/thomasrynne/chalkproxy.git
+ -cd chalkproxy
+ -set JAVA_HOME and SCALA_HOME
+ -./compile
+ -./run --demo
+ -go to http://localhost:8080
+This will run ChalkProxy in demo mode so you will see registrations come and go
+
+IE & Firefox
+ -IE and Firefox support is achieved using a flash plugin which requires access to port 843
+ -You need to either
+  -Forward port 8430 to 843:
+      sudo socat TCP-LISTEN:843,fork TCP:localhost:8430
+    or
+      iptables -t nat -A PREROUTING -p tcp --dport 843 -j REDIRECT --to-port 8430
+  -Run ChalkProxy as root and specify the flash port (--flash 843)
+ 

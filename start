@@ -1,0 +1,2 @@
+ROOT=`dirname $0`
+nohup $ROOT/run &> log &
