@@ -14,6 +14,12 @@ $(function() {
           ele.css({opacity: 1.0})
           ele.animate({opacity: 0.3}, {duration: 1000})
         })
+        jQuery.each(data.add, function(index, value) {
+          var ele = $('#'+value)
+          var height = ele.height()
+          ele.css({height:0 })
+          ele.animate({height: height}, {duration: 1000})
+        })
     }
     WEB_SOCKET_DEBUG = true
     window.WEB_SOCKET_SWF_LOCATION = "/assets/WebSocketMain.swf";

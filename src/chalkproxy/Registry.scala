@@ -63,9 +63,14 @@ class Registry {
       }
       case _ =>
     }
+    val isNew = !closed.contains(instance.key)
     closed = closed - instance.key
     registerSessions = registerSessions + (instance.key -> instance)
-    update(enabled=List(Page.instanceId(instance.key)))
+    if (isNew) {
+    	update(added=List(Page.instanceId(instance.key)))
+    } else {
+    	update(enabled=List(Page.instanceId(instance.key)))      
+    }
     readWriteLock.writeLock().unlock()
   }
 
@@ -76,13 +81,14 @@ class Registry {
     readWriteLock.writeLock().unlock()
   }
   
-  private def update(enabled:List[String]=Nil, disabled:List[String]=Nil) {
+  private def update(enabled:List[String]=Nil, disabled:List[String]=Nil, added:List[String]=Nil) {
     import scala.collection.JavaConversions
     val html = Page.listing(instances)
     val json = new JSONObject()
     json.put("html", html.toString)
     json.put("enable", new JSONArray(JavaConversions.asJavaCollection(enabled)))
     json.put("disable", new JSONArray(JavaConversions.asJavaCollection(disabled)))
+    json.put("add", new JSONArray(JavaConversions.asJavaCollection(added)))
     broadcast(json.toString)
   }
   private def broadcast(msg:String) {
