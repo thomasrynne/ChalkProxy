@@ -4,9 +4,14 @@ package chalkproxy
  * Holds all the html page generation code
  */
 object Page {
-  def listing(instances:List[InstanceSnapshot]) = {
-    val groups = instances.groupBy(_.instance.group)
-    <div id="groups">{groups.map { case (groupName, instances) => {
+  def listing(instances:List[InstanceSnapshot], groupFilter:Option[List[String]]) = {
+    val allGroups = instances.groupBy(_.instance.group)
+    val groupNames = groupFilter match {
+      case Some(filter) => filter
+      case None => allGroups.keySet.toList.sorted
+    }
+    <div id="groups">{groupNames.map { groupName => {
+      val instances = allGroups.getOrElse(groupName, Nil)
       groupHtml(groupName, instances)
     } }}</div>
   }

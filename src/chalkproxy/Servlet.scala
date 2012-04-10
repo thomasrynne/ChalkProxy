@@ -47,7 +47,14 @@ class ProxyHandler(registry:Registry) extends AbstractHandler {
 
 class PartialHandler(registry:Registry) extends AbstractHandler {
   override def handle(target:String, request:Request, httpRequest:HttpServletRequest, response:HttpServletResponse) {
-    val html = registry.fullPage
+    val groupFilter = request.getParameter("groups") match { 
+      case null => None
+      case "all" => None
+      case "" => None
+      case v => Some(v.split(":").toList)
+    }
+    println("partial" + groupFilter)
+    val html = Page.listing(registry.instances, groupFilter)
     response.setContentType("text/html")
     response.getWriter.println(html)
     request.setHandled(true)
@@ -66,18 +73,29 @@ class ListHandler(registry:Registry) extends AbstractHandler {
   }
 }
 
-class RootHandler(registry:Registry, name:String) extends AbstractHandler {
+class PageHandler(registry:Registry) extends AbstractHandler {
   override def handle(target:String, request:Request, httpRequest:HttpServletRequest, response:HttpServletResponse) {
-    val html = registry.fullPage
+    val (groupFilter, link) = target match {
+      case "/" => (registry.rootGroupFilter, if (registry.rootGroupFilter.isDefined) <a id='others' href='/all'>Show all</a> else <span/>)
+      case "/all" => (None, if (registry.rootGroupFilter.isDefined) <a id='others' href='/'>Show Special</a> else <span/>)
+    }
+    val html = Page.listing(registry.instances, groupFilter)
+    val groupsFilter = groupFilter match {
+      case Some(g) => g.mkString(":")
+      case None => "all"
+    }
     val message = ""
     val page =
 <html>
     <head debug="true">
-        <title>Ping</title>
+        <title>{registry.name}</title>
         <link rel="stylesheet" media="screen" href="/assets/bootstrap.css"/>
         <link rel="stylesheet" media="screen" href="/assets/main.css"/>
         <link rel="shortcut icon" type="image/png" href="/assets/favicon.png"/>
-        <script type="text/javascript">window.WEB_SOCKET_SWF_LOCATION = '/assets/WebSocketMain.swf'; </script>
+        <script type="text/javascript">
+          window.WEB_SOCKET_SWF_LOCATION = '/assets/WebSocketMain.swf';
+          window.GROUPS = '{groupsFilter}'; 
+        </script>
         <!-- <script type="text/javascript" src="https://getfirebug.com/firebug-lite-debug.js"></script> -->
         <script src="/assets/jquery-1.7.1.min.js" type="text/javascript"></script>
         <script src="/assets/json2.js" type="text/javascript"></script>
@@ -89,7 +107,8 @@ class RootHandler(registry:Registry, name:String) extends AbstractHandler {
             <div class="content">
                 <img id="logo" src="/assets/chalks.jpg"/>
                 <div id="status"></div>
-                <h1>{name}</h1>
+                { link }
+                <h1>{registry.name}</h1>
                 { html }
             </div>
         </div>

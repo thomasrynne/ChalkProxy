@@ -20,7 +20,7 @@ object Demo {
     new Thread(new Runnable() { def run() { go(hostname, port)}}, "Demo runner").start()
   }
   private def go(hostname:String, port:Int) {
-    val foo = List("UAT" -> List("Red", "House"), "Prod" -> List("James", "Cloud"), "Dev" -> List("D1", "D9"))
+    val foo = List("UAT" -> List("Red u", "House u"), "Prod" -> List("James p", "Cloud p"), "Dev" -> List("D1", "D9"))
     val registers = foo.flatMap { case (group, names) => {
       val props = List(
           ChalkProperty("branch", "master", Some("http://git/branches/master")),
@@ -28,7 +28,7 @@ object Demo {
           ChalkProperty("pwd", "/home/thomas/code"), 
           ChalkProperty("user", "thomas"))
       names.map { name => {
-        new ChalkProxy(hostname, port, "alt", 8080, name, group, "launch.jnlp", ChalkIcon("Launch", "/assets/blowfish.png", "/go.jnlp") :: Nil, props)
+        new ChalkProxy(hostname, port, "alt", 8080, name, group, ChalkIcon("Launch", "/assets/blowfish.png", "/go.jnlp") :: Nil, props)
       } }
     }}.toArray
     val random = new java.util.Random(0)

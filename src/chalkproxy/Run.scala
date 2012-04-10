@@ -35,6 +35,7 @@ object Run {
     options.addOption("s", "flash", true, "the port for the flash socket server (default 8430)")
     options.addOption("d", "demo", false, "run in demo mode with built in servers")
     options.addOption("n", "name", true, "The name for this instance of ChalkProxy")
+    options.addOption("g", "groups", true, "The : separated groups which should appear in the root page (if ommited all groups are shown)")
     options.addOption("h", "help", false, "print this help message")
     
     val commandLine = new BasicParser().parse(options, args)
@@ -73,10 +74,17 @@ object Run {
         val httpPort = Integer.parseInt(properties.getProperty("port", "8080"))
         val flashPort = Integer.parseInt(properties.getProperty("flash", "8430"))
         val name = properties.getProperty("name", "Chalk Proxy")
+        val groups = {
+         val value = properties.getProperty("groups", "").trim
+         value match {
+           case "" => None
+           case _ => Some(value.split(":").toList)
+         }
+        }
         println("Running ChalkProxy")
         try {
-	      val registry = new Registry()
-	      startWebserver(registry, name, httpPort)
+	      val registry = new Registry(name, groups)
+	      startWebserver(registry, httpPort)
 	      startFlashSocketServer(flashPort)
 	      startCleanupTimer(registry)
 	      if (properties.containsKey("demo") && properties.get("demo").toString.equalsIgnoreCase("true")) {
@@ -109,27 +117,28 @@ object Run {
     new FlashSocketServer(port).start()
   }
   
-  private def startWebserver(registry:Registry, name:String, port:Int) {
+  private def startWebserver(registry:Registry, port:Int) {
 
 	val server = new Server(port)
     
-	val rootHandler = new RootHandler(registry, name)
+	val pageHandler = new PageHandler(registry)
 	val partialHandler = new PartialHandler(registry)
 	val listHandler = new ListHandler(registry)
 	val proxy = new ProxyHandler(registry)
-    val watchWebSocketHandler = new WatchWebsocketHandler(registry)
+    val watchWebSocketHandler:AbstractHandler = new WatchWebsocketHandler(registry)
     val registerWebSocketHandler = new RegisterWebSocketHandler(registry)
     val resourceHandler = new ResourceHandler()
 	resourceHandler.setResourceBase(".")
 	
 	server.setHandler(new AbstractHandler() {
 		override def handle(target:String, request:Request, httpRequest:HttpServletRequest, response:HttpServletResponse) {
-		  val handler = target match {
-  		    case "/" => rootHandler
-  		    case "/partial" => partialHandler
+		  val handler:AbstractHandler = target match {
+  		    case "/" => pageHandler
+  		    case "/all" => pageHandler
   		    case "/list" => listHandler
 		    case "/register" => registerWebSocketHandler
-		    case "/watch" => watchWebSocketHandler
+		    case _ if (target.startsWith("/partial")) => partialHandler
+		    case _ if (target.startsWith("/watch")) => watchWebSocketHandler
 		    case _ => if (target.startsWith("/assets")) resourceHandler else proxy
 		  }
 		  handler.handle(target, request, httpRequest, response)

@@ -21,6 +21,11 @@ $(function() {
           ele.animate({height: height}, {duration: 1000})
         })
     }
+    var reload = function() {
+      $('#groups').load('/partial?random='+
+        Math.floor(Math.random()*10000)+
+        '&groups='+window.GROUPS)
+    }
     WEB_SOCKET_DEBUG = true
     window.WEB_SOCKET_SWF_LOCATION = "/assets/WebSocketMain.swf";
     var connect = function() {
@@ -29,17 +34,17 @@ $(function() {
           wsHost = wsHost + ":" + window.location.port
         }
         var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket
-        var watchSocket = new WS("ws://"+wsHost+"/watch")
+        var watchSocket = new WS("ws://"+wsHost+"/watch/"+window.GROUPS)
         watchSocket.onclose = function() {
             $('#status').html('Disconnected')
             setTimeout(connect, 5000);
         };
         watchSocket.onopen = function() {
-            $('#groups').load('/partial?random='+Math.floor(Math.random()*10000))
+            reload()
             $('#status').html('Connected')
         };
         watchSocket.onmessage = receiveEvent
     }
-    connect();
-    $('#groups').load('/partial?random='+Math.floor(Math.random()*10000))
+    connect()
+    reload()
 })

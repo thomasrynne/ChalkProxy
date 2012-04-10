@@ -14,7 +14,7 @@ import org.json.JSONArray
  */
 case class ChalkIcon(text:String, image:String, url:String)
 case class ChalkProperty(name:String, value:String, url:Option[String]=None)
-class ChalkProxy(wpHost:String, wpPort:Int, serverHost:String, serverPort:Int, name:String, group:String, appUrl:String,
+class ChalkProxy(wpHost:String, wpPort:Int, serverHost:String, serverPort:Int, val name:String, val group:String,
     icons:List[ChalkIcon],
     properties:List[ChalkProperty]) {
   class Connection {

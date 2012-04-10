@@ -20,12 +20,13 @@ case class InstanceSnapshot(instance:Instance, isClosed:Boolean)
 case class RegistrationToken(id:Int)
 trait Watcher {
   def notify(html:String)
+  def groupFilter:Option[List[String]]
 }
 
 /**
  * Represents the state of the chalk board
  */
-class Registry {
+class Registry(val name:String, val rootGroupFilter:Option[List[String]]) {
 
   val readWriteLock = new ReentrantReadWriteLock
   var registerSessions = Map[String,Instance]()
@@ -44,11 +45,12 @@ class Registry {
     val cutOff = System.currentTimeMillis() - (28*60*60*1000)
     val expired = closed.toList.filter { case (key,date) => date.getTime < cutOff}
     if (expired.nonEmpty) {
+      val groups = expired.map { case (key, _) => { registerSessions(key).group } }.toSet
       expired.foreach { case (key, _) => {
         closed = closed - key
         registerSessions = registerSessions - key
       } }
-      update()
+      update(groups)
     }
     readWriteLock.writeLock().unlock()
   }
@@ -67,9 +69,9 @@ class Registry {
     closed = closed - instance.key
     registerSessions = registerSessions + (instance.key -> instance)
     if (isNew) {
-    	update(added=List(Page.instanceId(instance.key)))
+    	update(Set(instance.group), added=List(Page.instanceId(instance.key)))
     } else {
-    	update(enabled=List(Page.instanceId(instance.key)))      
+    	update(Set(instance.group), enabled=List(Page.instanceId(instance.key)))      
     }
     readWriteLock.writeLock().unlock()
   }
@@ -77,24 +79,32 @@ class Registry {
   def unregister(instance:Instance) {
     readWriteLock.writeLock().lock()
     closed = closed + (instance.key -> new java.util.Date())
-    update(disabled=List(Page.instanceId(instance.key)))
+    update(Set(instance.group), disabled=List(Page.instanceId(instance.key)))
     readWriteLock.writeLock().unlock()
   }
   
-  private def update(enabled:List[String]=Nil, disabled:List[String]=Nil, added:List[String]=Nil) {
+  private def update(groups:Set[String], enabled:List[String]=Nil, disabled:List[String]=Nil, added:List[String]=Nil) {
+    watchers.toArray(Array[Watcher]()).groupBy(_.groupFilter).foreach { case (groupFilter, w) => {
+      val watching = groupFilter match {
+        case None => true
+        case Some(g) => (g.toSet & groups).nonEmpty 
+      }
+      if (watching) {
+        val json = createJson(enabled, disabled, added, groupFilter).toString
+    	w.foreach(_.notify(json))
+      }
+    } }
+  }
+  
+  private def createJson(enabled:List[String], disabled:List[String], added:List[String], groupFilter:Option[List[String]]) = {
     import scala.collection.JavaConversions
-    val html = Page.listing(instances)
+    val html = Page.listing(instances, groupFilter)
     val json = new JSONObject()
     json.put("html", html.toString)
     json.put("enable", new JSONArray(JavaConversions.asJavaCollection(enabled)))
     json.put("disable", new JSONArray(JavaConversions.asJavaCollection(disabled)))
     json.put("add", new JSONArray(JavaConversions.asJavaCollection(added)))
-    broadcast(json.toString)
-  }
-  private def broadcast(msg:String) {
-    for (w <- watchers.toArray(Array[Watcher]())) {
-      w.notify(msg)
-    }
+    json
   }
   
   def instances:List[InstanceSnapshot] = {
@@ -104,8 +114,6 @@ class Registry {
     readWriteLock.readLock().unlock()
     rs.values.toList.map { instance => InstanceSnapshot(instance, closed.contains(instance.key))}
   }
-  
-  def fullPage = Page.listing(instances)
   
   def addWatcher(watcher:Watcher) {
     watchers.add(watcher)

@@ -11,13 +11,18 @@ import org.eclipse.jetty.websocket.WebSocket.Connection
 class WatchWebsocketHandler(registry:Registry) extends WebSocketHandler {
 
 	def doWebSocketConnect(request:HttpServletRequest, protocol:String) = {
-		new WatcherWebSocket();
+	  val group = request.getPathInfo().substring(request.getPathInfo().indexOf('/', 1)+1)
+	  val groupFilter = group match { 
+	    case "all" => None
+	    case v => Some(v.split(":").toList)
+	  }
+      new WatcherWebSocket(groupFilter)
 	}
 
-	class WatcherWebSocket extends WebSocket.OnTextMessage {
-
+	class WatcherWebSocket(groupFilter:Option[List[String]]) extends WebSocket.OnTextMessage {
 		var connection : Connection = null
 		val watcher = new Watcher {
+		  def groupFilter = WatcherWebSocket.this.groupFilter
 		  def notify(html:String) {
 		    connection.sendMessage(html)
 		  }
