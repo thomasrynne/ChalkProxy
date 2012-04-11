@@ -30,10 +30,11 @@ object Run {
   def main(args:Array[String]) = {
     
     val options = new Options
-    options.addOption("p", "port", true, "the http port to listen on (default 8080)")    
+    options.addOption("p", "http-port", true, "the http port to listen on (default 8080)")    
     options.addOption("f", "file", true, "read settings from a properties file")
-    options.addOption("s", "flash", true, "the port for the flash socket server (default 8430)")
-    options.addOption("d", "demo", false, "run in demo mode with built in servers")
+    options.addOption("s", "flash-port", true, "the port for the flash socket server (default 8430)")
+    options.addOption("r", "registation-port", true, "the port for socket registrations (default 4000)")
+    options.addOption("d", "demo-mode", false, "run in demo mode with built in servers")
     options.addOption("n", "name", true, "The name for this instance of ChalkProxy")
     options.addOption("g", "groups", true, "The : separated groups which should appear in the root page (if ommited all groups are shown)")
     options.addOption("h", "help", false, "print this help message")
@@ -71,9 +72,10 @@ object Run {
           false)
       } else {
         writePID()
-        val httpPort = Integer.parseInt(properties.getProperty("port", "8080"))
-        val flashPort = Integer.parseInt(properties.getProperty("flash", "8430"))
+        val httpPort = Integer.parseInt(properties.getProperty("http-port", "8080"))
+        val flashPort = Integer.parseInt(properties.getProperty("flash-port", "8430"))
         val name = properties.getProperty("name", "Chalk Proxy")
+        val registrationPort = Integer.parseInt(properties.getProperty("registration-port", "4000"))
         val groups = {
          val value = properties.getProperty("groups", "").trim
          value match {
@@ -84,11 +86,12 @@ object Run {
         println("Running ChalkProxy")
         try {
 	      val registry = new Registry(name, groups)
+	      new SocketRegistrationServer(registry, registrationPort)
 	      startWebserver(registry, httpPort)
 	      startFlashSocketServer(flashPort)
 	      startCleanupTimer(registry)
-	      if (properties.containsKey("demo") && properties.get("demo").toString.equalsIgnoreCase("true")) {
-	        Demo.start("localhost", httpPort)
+	      if (properties.containsKey("demo-mode") && properties.get("demo-mode").toString.equalsIgnoreCase("true")) {
+	        Demo.start("localhost", registrationPort)
 	        println("Starting in demo mode")
 	      }
         } catch {

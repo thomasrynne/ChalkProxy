@@ -53,7 +53,6 @@ class PartialHandler(registry:Registry) extends AbstractHandler {
       case "" => None
       case v => Some(v.split(":").toList)
     }
-    println("partial" + groupFilter)
     val html = Page.listing(registry.instances, groupFilter)
     response.setContentType("text/html")
     response.getWriter.println(html)

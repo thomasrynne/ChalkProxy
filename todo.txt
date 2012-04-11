@@ -1,10 +1,7 @@
-Only show special groups on root page
 Property updates
 About page
 Separation of registration and server start
 Create single server jar
-Plain socket registration
-Animate inserts
 Better build/start/stop script
 Improve Readme (more on server registration)
 Integrate TestServer into demo mode

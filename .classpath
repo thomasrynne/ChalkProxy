@@ -18,5 +18,6 @@
 	<classpathentry kind="lib" path="lib/jetty-security-7.6.2.v20120308.jar"/>
 	<classpathentry kind="lib" path="lib/json.jar"/>
 	<classpathentry kind="lib" path="lib/weberknecht-0.1.1.jar"/>
+	<classpathentry kind="lib" path="lib/netty-3.3.1.Final.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
