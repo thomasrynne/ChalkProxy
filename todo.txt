@@ -1,8 +1,7 @@
+Support long names and many properties
 Property updates
 About page
-Separation of registration and server start
 Create single server jar
 Better build/start/stop script
 Improve Readme (more on server registration)
 Integrate TestServer into demo mode
-Send error when there is a name clash at registration

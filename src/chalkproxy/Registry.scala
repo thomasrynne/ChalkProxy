@@ -22,7 +22,7 @@ trait Watcher {
   def notify(html:String)
   def groupFilter:Option[List[String]]
 }
-
+class DuplicateRegistrationException(message:String) extends Exception(message)
 /**
  * Represents the state of the chalk board
  */
@@ -56,24 +56,27 @@ class Registry(val name:String, val rootGroupFilter:Option[List[String]]) {
   }
   
   def register(instance:Instance) {
-    readWriteLock.writeLock().lock()
-    registerSessions.get(instance.key) match {
-      case Some(instance) => {
-      	if(!closed.contains(instance.key)) {
-      	  throw new Exception(instance.key + " is already registered by " + instance)
-      	}
-      }
-      case _ =>
+    try {
+	  readWriteLock.writeLock().lock()
+	  registerSessions.get(instance.key) match {
+	    case Some(instance) => {
+	      if(!closed.contains(instance.key)) {
+	    	throw new DuplicateRegistrationException(instance.key + " is already registered by " + instance)
+	      }
+	    }
+	    case _ =>
+	  }
+	  val isNew = !closed.contains(instance.key)
+	  closed = closed - instance.key
+	  registerSessions = registerSessions + (instance.key -> instance)
+	  if (isNew) {
+	  	update(Set(instance.group), added=List(Page.instanceId(instance.key)))
+	  } else {
+	  	update(Set(instance.group), enabled=List(Page.instanceId(instance.key)))      
+	  }
+    } finally {
+	  readWriteLock.writeLock().unlock()
     }
-    val isNew = !closed.contains(instance.key)
-    closed = closed - instance.key
-    registerSessions = registerSessions + (instance.key -> instance)
-    if (isNew) {
-    	update(Set(instance.group), added=List(Page.instanceId(instance.key)))
-    } else {
-    	update(Set(instance.group), enabled=List(Page.instanceId(instance.key)))      
-    }
-    readWriteLock.writeLock().unlock()
   }
 
   def unregister(instance:Instance) {

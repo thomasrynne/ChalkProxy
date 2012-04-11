@@ -6,8 +6,15 @@ import de.roderick.weberknecht.WebSocketEventHandler
 import de.roderick.weberknecht.WebSocketMessage
 import org.json.JSONObject
 import org.json.JSONArray
-      import scala.collection.JavaConversions
+import scala.collection.JavaConversions
 import java.net.Socket
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.util.concurrent.atomic.AtomicBoolean
+import java.net.ConnectException
+import java.util.concurrent.atomic.AtomicReference
+import java.net.SocketException
+
 /**
  * The server registration code to be used by servers
  * Creates a socket or websocket connection, sends the details as json, leaves the socket / websocket open
@@ -53,11 +60,41 @@ class ChalkProxy(wpHost:String, wpPort:Int, serverHost:String, serverPort:Int, v
   trait ChalkConnection {
     def stop()
   }
-  class ChalkSocketConnection extends ChalkConnection {
-    val socket = new Socket(wpHost, wpPort)
-    socket.getOutputStream().write((json + "\n").getBytes("utf8"))
+  class ChalkSocketConnection extends ChalkConnection with Runnable {
+    
+	val socket:AtomicReference[Socket] = new AtomicReference(null)
+	val keepConnected = new AtomicBoolean(true)
+    def run() {
+	    def connectAndWait() {
+	      val s = new Socket(wpHost, wpPort)
+	      socket.set(s)
+	      s.getOutputStream().write((json + "\n").getBytes("utf8"))
+	      val reader = new BufferedReader(new InputStreamReader(s.getInputStream()))
+	      val response = reader.readLine
+	      if (response != "OK") {
+	        println("Registration failed: " + response)
+	      }
+	      while (reader.readLine() != null) {}
+	    }
+	    var retryInterval = 5000;
+	    while (keepConnected.get) {
+	      try {
+	        connectAndWait()
+	        retryInterval = 5000;
+	      } catch {
+	        case e:SocketException => {
+	          retryInterval = math.min(retryInterval * 2, 5*60*1000)
+	        }
+	      }
+	      if (keepConnected.get) {
+	        Thread.sleep(retryInterval)
+	      }
+	    }
+    }
     def stop() {
-      socket.close()
+      keepConnected.set(false)
+      val s = socket.get
+      if (s != null) s.close()
     }
   }
   class ChalkWebSocketConnection extends ChalkConnection {
@@ -73,20 +110,27 @@ class ChalkProxy(wpHost:String, wpPort:Int, serverHost:String, serverPort:Int, v
       websocket.close()
     }
   }
-  var connection:Option[ChalkConnection] = None
+  val connection = new AtomicReference[ChalkConnection](null)
+  
   def start() {
-    connection match {
-      case Some(_) => throw new Exception("Already started")
-      case None => { connection=Some(new ChalkSocketConnection) }
+    val newConnection = new ChalkSocketConnection
+    val notStarted = connection.compareAndSet(null, newConnection)
+    if (notStarted) {
+      new Thread(newConnection, "ChalkProxy").start()
+    } else {
+      throw new Exception("Already started")
     }
   }
   def isStarted() = {
-    connection.isDefined
+    connection.get != null
   }
   def stop() {
-    connection match {
-      case None => throw new Exception("Not started")
-      case Some(c) => { c.stop; connection = None }
+    val c = connection.get
+    connection.set(null)
+    if (c != null) {
+      c.stop()
+    } else {
+      throw new Exception("Not started")
     }
   }
 }

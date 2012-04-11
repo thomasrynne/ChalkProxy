@@ -42,8 +42,15 @@ class SocketRegistrationServer(registry:Registry, port:Int) {
 	      val instance = JsonInstance.create(message)
 	      registry.register(instance)
 	      registered = Some(instance)
+	      ctx.getChannel().write("OK\n")
       } catch {
+        case e:DuplicateRegistrationException => {
+          ctx.getChannel().write(e.getMessage + "\n")
+          ctx.getChannel().close()
+        }
         case e:Exception => {
+          ctx.getChannel.write(e.getMessage + "\n")
+          ctx.getChannel().close()
           e.printStackTrace()
         }
       }
