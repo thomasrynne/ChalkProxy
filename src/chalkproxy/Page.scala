@@ -1,4 +1,5 @@
 package chalkproxy
+import scala.xml.Text
 
 /**
  * Holds all the html page generation code
@@ -10,21 +11,21 @@ object Page {
       case Some(filter) => filter
       case None => allGroups.keySet.toList.sorted
     }
-    <div id="groups">{groupNames.map { groupName => {
+    <div id="groups" class="container">
+    {groupNames.map { groupName => {
       val instances = allGroups.getOrElse(groupName, Nil)
       groupHtml(groupName, instances)
-    } }}</div>
+    } }}
+    </div>
   }
   
   def groupHtml(groupName:String, instances:List[InstanceSnapshot]) = {
-    <h2>{groupName}</h2>
-    <div class="instances" id={groupId(groupName)}>{
-      instances.sortBy(_.instance.prefix).map { entry => { instanceHtml(entry.instance, !entry.isClosed) } }
-    }</div>
+    <div class="row group"><h2>{groupName}</h2></div> ++
+    {instances.sortBy(_.instance.prefix).map { entry => { instanceHtml(entry.instance, !entry.isClosed) } } }
   }
   
   def iconHtml(instance:Instance, icon:Icon) = {
-    <a class="launch" href={instance.key + icon.url}>{
+    <a class="" href={instance.key + icon.url}>{
       if (icon.image == "") {
         icon.text
       } else {
@@ -35,16 +36,16 @@ object Page {
   }
   
   def instanceHtml(instance:Instance, active:Boolean) = {
-    val style = if (!active) "opacity: 0.3; zoom: 1; filter: alpha(opacity=30)" else ""
-      <div class="row instance" id={instanceId(instance.key)} style={style}>
-        <div class="span2 offset1 main-link"><a class="main-link" href={"/"+instance.prefix}>{instance.name}</a></div>
-        <div class="span1 icons">{instance.icons.map { icon => iconHtml(instance, icon) } }</div>
-        <div class="span8 props">{instance.props.map { case Prop(name, value, url) => { <span> <b>{name}:</b> {
+    val disable= if (!active) " disable" else ""
+      <div class="row instance" id={instanceId(instance.key)}>
+        <div class={"span3 main-link " + disable}><a href={"/"+instance.prefix}>{instance.name}</a></div>
+        <div class={"span1" + disable}>{instance.icons.map { icon => iconHtml(instance, icon) } }</div>
+        <div class={"span8" + disable}>{instance.props.map { case Prop(name, value, url) => { <span class="prop"> <b>{name}:</b> {
           url match {
             case None => value
             case Some(u) => <a href={u}>{value}</a>
           }
-        }</span> } } }</div>
+        }</span> ++ Text(" ")} } }</div>
       </div>
   }
   def groupId(group:String) = "group-"+group.replaceAll(" ", "_").toLowerCase()

@@ -20,27 +20,42 @@ object Demo {
     new Thread(new Runnable() { def run() { go(hostname, port)}}, "Demo runner").start()
   }
   private def go(hostname:String, port:Int) {
-    val foo = List("UAT" -> List("Red u", "House u"), "Prod" -> List("James p", "Cloud p"), "Dev" -> List("D1", "D9"))
+    val foo = List("UAT" -> List("Red u@ thomas roo", "House u also quite long"), "Prod" -> List("James p", "Cloud p"), "Dev" -> List("D1", "D9"))
     val registers = foo.flatMap { case (group, names) => {
       val props = List(
           ChalkProperty("branch", "master", Some("http://git/branches/master")),
-          ChalkProperty("users", "2"),
-          ChalkProperty("pwd", "/home/thomas/code"), 
-          ChalkProperty("user", "thomas"))
+          ChalkProperty("commit", "fjfiwj5osj32"),
+          ChalkProperty("pwd", "/home/thomas/code/server/main"), 
+          ChalkProperty("user", "t homas rynne"),
+          ChalkProperty("started", "20Apr2012 14:54"),
+          ChalkProperty("Status", "started"),
+          ChalkProperty("pwd", "/home/thomas/code/server/main"), 
+          ChalkProperty("user", "t homas rynne"),
+          ChalkProperty("started", "20Apr2012 14:54"),
+          ChalkProperty("pid", "2543"))
       names.map { name => {
-        new ChalkProxy(hostname, port, "alt", 8080, name, group, ChalkIcon("Launch", "/assets/blowfish.png", "/go.jnlp") :: Nil, props)
+        new ChalkProxy(
+          hostname, port, "alt", 8080, name, group,
+          ChalkIcon("Launch 2", "/assets/blowfish.png", "/go.jnlp") :: Nil,
+          props
+        )
       } }
     }}.toArray
-    val random = new java.util.Random(0)
-    while (true) {
-      val next = random.nextInt(registers.size)
-      val register = registers(next)
-      if (register.isStarted()) {
-        register.stop()
-      } else {
-        register.start()
-      }
-      Thread.sleep(3000)
+    val startAndStop = true
+    if (startAndStop) {
+	    val random = new java.util.Random(0)
+	    while (true) {
+	      val next = random.nextInt(registers.size)
+	      val register = registers(next)
+	      if (register.isStarted()) {
+	        register.stop()
+	      } else {
+	        register.start()
+	      }
+	      Thread.sleep(3000)
+	    }
+    } else {
+      registers.foreach(_.start())
     }
   }
 }

@@ -1,5 +1,6 @@
 Support long names and many properties
 Property updates
+Persist starts and stops
 About page
 Create single server jar
 Better build/start/stop script

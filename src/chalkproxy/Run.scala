@@ -90,7 +90,7 @@ object Run {
 	      startWebserver(registry, httpPort)
 	      startFlashSocketServer(flashPort)
 	      startCleanupTimer(registry)
-	      if (properties.containsKey("demo-mode") && properties.get("demo-mode").toString.equalsIgnoreCase("true")) {
+	      if (properties.containsKey("demo-mode")) {
 	        Demo.start("localhost", registrationPort)
 	        println("Starting in demo mode")
 	      }

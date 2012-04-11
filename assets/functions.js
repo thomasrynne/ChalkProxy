@@ -5,14 +5,14 @@ $(function() {
         var group = $('#groups')
         group.replaceWith(update)
         jQuery.each(data.enable, function(index, value) {
-          var ele = $('#'+value)
-          ele.css({opacity: 0.3})
-          ele.animate({opacity: 1.0}, {duration: 1000})
+          var ele = $('#'+value).children()
+ //         ele.css({opacity: 0.4})
+//          ele.fadeTo(1000, 1.0)
         })
         jQuery.each(data.disable, function(index, value) {
-          var ele = $('#'+value)
-          ele.css({opacity: 1.0})
-          ele.animate({opacity: 0.3}, {duration: 1000})
+          var ele = $('#'+value).children()
+ //         ele.css({opacity: 1.0})
+ //         ele.fadeTo(1000, 0.4)
         })
         jQuery.each(data.add, function(index, value) {
           var ele = $('#'+value)
@@ -22,9 +22,11 @@ $(function() {
         })
     }
     var reload = function() {
-      $('#groups').load('/partial?random='+
+      $.get('/partial?random='+
         Math.floor(Math.random()*10000)+
-        '&groups='+window.GROUPS)
+        '&groups='+window.GROUPS, function(data) {
+          $('#groups').replaceWith(data)
+      })
     }
     WEB_SOCKET_DEBUG = true
     window.WEB_SOCKET_SWF_LOCATION = "/assets/WebSocketMain.swf";
