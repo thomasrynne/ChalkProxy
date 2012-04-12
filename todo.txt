@@ -1,7 +1,6 @@
-Property updates
+Better animation
 Persist starts and stops
 About page
 Create single server jar
 Better build/start/stop script
 Improve Readme (more on server registration)
-Integrate TestServer into demo mode

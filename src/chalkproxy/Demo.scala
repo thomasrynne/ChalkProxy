@@ -14,15 +14,20 @@ object Demo {
   def main(args:Array[String]) {
     val hostname = if (args.length > 0) args(0) else "localhost"
     val port = if (args.length > 1) args(1).toInt else  4000
-    start(hostname, port)
+    val demo = new Demo(hostname, port, "localhost")
+    demo.go()
   }
-  def start(hostname:String, port:Int) {
-    new Thread(new Runnable() { def run() { go(hostname, port)}}, "Demo runner").start()
+  def start(port:Int) {
+    val demo = new Demo("localhost", port, "localhost")
+    new Thread(new Runnable() { def run() {
+      demo.go()
+    }}, "Demo runner").start()
   }
-  private def go(hostname:String, port:Int) {
-    val foo = List("UAT" -> List("Red u@ thomas roo", "House u also quite long"), "Prod" -> List("James p", "Cloud p"), "Dev" -> List("D1", "D9"))
-    val registers = foo.flatMap { case (group, names) => {
-      val props = List(
+}
+class Demo(chalkHostname:String, chalkPort:Int, localHostname:String) {
+  
+  class SampleServer(port:Int, name:String, group:String) {
+    val props = List(
           ChalkProperty("branch", "master", Some("http://git/branches/master")),
           ChalkProperty("commit", "fjfiwj5osj32"),
           ChalkProperty("pwd", "/home/thomas/code/server/main"), 
@@ -33,25 +38,42 @@ object Demo {
           ChalkProperty("user", "t homas rynne"),
           ChalkProperty("started", "20Apr2012 14:54"),
           ChalkProperty("pid", "2543"))
-      names.map { name => {
-        new ChalkProxy(
-          hostname, port, "alt", 8080, name, group,
+    val chalkProxy = new ChalkProxy(
+          chalkHostname, chalkPort, localHostname, port, name, group,
           ChalkIcon("Launch 2", "/assets/blowfish.png", "/go.jnlp") :: Nil,
           props
-        )
-      } }
-    }}.toArray
+    )
+    val webServer = new TestServer(name, port)
+    def start() {
+        webServer.start()
+    	chalkProxy.start()
+    }
+    def isStarted() = chalkProxy.isStarted()
+    def update(prop:ChalkProperty) {
+      chalkProxy.update(prop)
+    }
+    def stop() {
+      webServer.stop()
+      chalkProxy.stop()
+    }
+  } 
+  def go() {
+    val foo = List("UAT" -> List("Red u@ thomas roo", "House u also quite long"), "Prod" -> List("James p", "Cloud p"), "Dev" -> List("D1", "D9"))
+    val baseServerPort = 5000
+    val samples = foo.flatMap { case (group, names) => { names.map { name => (name,group) } } }.zipWithIndex.map { case ((name,group), index) => {
+      new SampleServer(baseServerPort+index, name, group)
+    } }.toArray
     val startAndStop = true
     if (startAndStop) {
 	    val random = new java.util.Random(0)
 	    while (true) {
-	      val next = random.nextInt(registers.size)
-	      val register = registers(next)
+	      val next = random.nextInt(samples.size)
+	      val register = samples(next)
 	      if (register.isStarted()) {
 	        if (random.nextBoolean()) {
 	          register.update(ChalkProperty("Status", "started"))
 	        } else {
-	          register.stop()
+	          register.update(ChalkProperty("Status", "Busy"))
 	        }
 	      } else {
 	        register.start()
@@ -59,7 +81,7 @@ object Demo {
 	      Thread.sleep(3000)
 	    }
     } else {
-      registers.foreach(_.start())
+      samples.foreach(_.start())
     }
   }
 }

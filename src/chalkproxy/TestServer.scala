@@ -17,9 +17,13 @@ import org.eclipse.jetty.servlet.ServletHolder
  */
 object TestServer {
   def main(args:Array[String]) = {
+    new TestServer("Test server", 8090).start()
+  }
+}
+class TestServer(name:String, port:Int) {
 	val server = new Server();
     val connector = new SelectChannelConnector();
-    connector.setPort(8080);
+    connector.setPort(port);
     server.addConnector(connector);
  
     val resource_handler = new ResourceHandler()
@@ -38,12 +42,15 @@ object TestServer {
     val handlers = new HandlerList()
     handlers.setHandlers(Array(context, resource_handler, new DefaultHandler()))
     server.setHandler(handlers)
- 
-    server.start()
-    server.join()
-  }
-}
-class RootServlet extends HttpServlet {
+
+    def start() {
+    	server.start()
+    }
+    def stop() {
+      server.stop()
+    }
+
+  class RootServlet extends HttpServlet {
   override def doGet(request:HttpServletRequest, response:HttpServletResponse) {
     if (!request.getRequestURI.equals("/")) {
       response.setStatus(404)
@@ -51,13 +58,14 @@ class RootServlet extends HttpServlet {
     } else {
       response.getWriter.println(
       <html><head></head><body>
-        <h1>Test webserver</h1>
+        <h1>Test webserver: {name}</h1>
         <a href="headers">view client headers</a> <br/>
         <a href="form/page">test form with post</a> <br/>
       </body></html>
       )
     }
   }  
+  }
 }
 class HeadersServlet() extends HttpServlet {
   override def doGet(request:HttpServletRequest, response:HttpServletResponse) {

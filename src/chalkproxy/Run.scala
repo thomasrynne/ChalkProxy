@@ -20,6 +20,7 @@ import org.eclipse.jetty.server.handler.AbstractHandler
 import org.eclipse.jetty.servlet.ServletHandler
 import org.eclipse.jetty.server.handler.ResourceHandler
 import java.lang.management.ManagementFactory
+import org.eclipse.jetty.util.log.AbstractLogger
 
 /**
  * This is the entry point to ChalkProxy.
@@ -85,13 +86,16 @@ object Run {
         }
         println("Running ChalkProxy")
         try {
+//          org.eclipse.jetty.util.log.Log.setLog(new AbstractLogger() {
+//            
+//          }) //stop jetty logging
 	      val registry = new Registry(name, groups)
 	      new SocketRegistrationServer(registry, registrationPort)
 	      startWebserver(registry, httpPort)
 	      startFlashSocketServer(flashPort)
 	      startCleanupTimer(registry)
 	      if (properties.containsKey("demo-mode")) {
-	        Demo.start("localhost", registrationPort)
+	        Demo.start(registrationPort)
 	        println("Starting in demo mode")
 	      }
         } catch {
@@ -123,7 +127,6 @@ object Run {
   private def startWebserver(registry:Registry, port:Int) {
 
 	val server = new Server(port)
-    
 	val pageHandler = new PageHandler(registry)
 	val partialHandler = new PartialHandler(registry)
 	val listHandler = new ListHandler(registry)
