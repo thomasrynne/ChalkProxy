@@ -22,8 +22,7 @@ $(function() {
         })
         jQuery.each(data.updatedProperties, function(index, value) {
           var ele = $('#'+value)
-          //var originalBg = ele.css("background-color")
-	      //ele.css("backgroundColor", 'red').animate({backgroundColor: originalBg}, 2000)
+	      ele.css("backgroundColor", '#ffff9C').animate({backgroundColor: '#ffffff'}, 5000)
         })
     }
     var reload = function() {
