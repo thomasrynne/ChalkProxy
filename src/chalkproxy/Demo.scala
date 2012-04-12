@@ -28,7 +28,7 @@ object Demo {
           ChalkProperty("pwd", "/home/thomas/code/server/main"), 
           ChalkProperty("user", "t homas rynne"),
           ChalkProperty("started", "20Apr2012 14:54"),
-          ChalkProperty("Status", "started"),
+          ChalkProperty("Status", "starting"),
           ChalkProperty("pwd", "/home/thomas/code/server/main"), 
           ChalkProperty("user", "t homas rynne"),
           ChalkProperty("started", "20Apr2012 14:54"),
@@ -48,7 +48,11 @@ object Demo {
 	      val next = random.nextInt(registers.size)
 	      val register = registers(next)
 	      if (register.isStarted()) {
-	        register.stop()
+	        if (random.nextBoolean()) {
+	          register.update(ChalkProperty("Status", "started"))
+	        } else {
+	          register.stop()
+	        }
 	      } else {
 	        register.start()
 	      }

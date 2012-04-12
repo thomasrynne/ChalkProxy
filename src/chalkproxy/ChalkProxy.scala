@@ -24,21 +24,22 @@ case class ChalkProperty(name:String, value:String, url:Option[String]=None)
 class ChalkProxy(wpHost:String, wpPort:Int, serverHost:String, serverPort:Int, val name:String, val group:String,
     icons:List[ChalkIcon],
     properties:List[ChalkProperty]) {
+  var latestProperties = properties
+  def propertyToJson(attribute:ChalkProperty) = {
+    val json = new JSONObject()
+    json.put("name", attribute.name)
+    json.put("value", attribute.value)
+    attribute.url.foreach { url => {
+  	  json.put("url", url)
+    }}
+    json
+  }
   private def createInstanceJson() = {
 	def iconToJson(icon:ChalkIcon) = {
       val json = new JSONObject()
       json.put("text", icon.text)
       json.put("image", icon.image)
       json.put("url", icon.url)
-      json
-    }
-	def propertyToJson(attribute:ChalkProperty) = {
-      val json = new JSONObject()
-      json.put("name", attribute.name)
-      json.put("value", attribute.value)
-      attribute.url.foreach { url => {
-    	  json.put("url", url)
-      }}
       json
     }
     val json = new JSONObject()
@@ -50,14 +51,13 @@ class ChalkProxy(wpHost:String, wpPort:Int, serverHost:String, serverPort:Int, v
       new JSONArray(JavaConversions.asJavaCollection(icons.map { icon => iconToJson(icon) }))
     })
     json.put("props", {
-      new JSONArray(JavaConversions.asJavaCollection(properties.map { property => propertyToJson(property) }))
+      new JSONArray(JavaConversions.asJavaCollection(latestProperties.map { property => propertyToJson(property) }))
     })
     json.toString
   }
   
-  val json = createInstanceJson()
-  
   trait ChalkConnection {
+    def update(prop:ChalkProperty)
     def stop()
   }
   class ChalkSocketConnection extends ChalkConnection with Runnable {
@@ -66,6 +66,7 @@ class ChalkProxy(wpHost:String, wpPort:Int, serverHost:String, serverPort:Int, v
 	val keepConnected = new AtomicBoolean(true)
     def run() {
 	    def connectAndWait() {
+          val json = createInstanceJson()
 	      val s = new Socket(wpHost, wpPort)
 	      socket.set(s)
 	      s.getOutputStream().write((json + "\n").getBytes("utf8"))
@@ -91,23 +92,19 @@ class ChalkProxy(wpHost:String, wpPort:Int, serverHost:String, serverPort:Int, v
 	      }
 	    }
     }
+	def update(prop:ChalkProperty) {
+	  
+      val s = socket.get
+      if (s != null) {
+        s.getOutputStream().write((propertyToJson(prop).toString() + "\n").getBytes("utf8"))
+      } else {
+        throw new Exception("Not connected")
+      }
+    }
     def stop() {
       keepConnected.set(false)
       val s = socket.get
       if (s != null) s.close()
-    }
-  }
-  class ChalkWebSocketConnection extends ChalkConnection {
-    val websocket = new WebSocketConnection(new URI("ws://" + wpHost + ":" + wpPort + "/register"))
-    websocket.setEventHandler(new WebSocketEventHandler() {
-      def onOpen() { }
-      def onMessage(message:WebSocketMessage) { }
-      def onClose() { }
-    })
-	websocket.connect()
-	websocket.send(json.toString())
-    def stop() {
-      websocket.close()
     }
   }
   val connection = new AtomicReference[ChalkConnection](null)
@@ -123,6 +120,15 @@ class ChalkProxy(wpHost:String, wpPort:Int, serverHost:String, serverPort:Int, v
   }
   def isStarted() = {
     connection.get != null
+  }
+  def update(prop:ChalkProperty) {
+    latestProperties = latestProperties.map { p => if (p.name == prop.name) prop else p }
+    val c = connection.get
+    if (c != null) {
+      c.update(prop)
+    } else {
+      throw new Exception("Not started")
+    }
   }
   def stop() {
     val c = connection.get

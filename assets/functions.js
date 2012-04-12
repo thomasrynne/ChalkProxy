@@ -20,6 +20,11 @@ $(function() {
           ele.css({height:0 })
           ele.animate({height: height}, {duration: 1000})
         })
+        jQuery.each(data.updatedProperties, function(index, value) {
+          var ele = $('#'+value)
+          //var originalBg = ele.css("background-color")
+	      //ele.css("backgroundColor", 'red').animate({backgroundColor: originalBg}, 2000)
+        })
     }
     var reload = function() {
       $.get('/partial?random='+

@@ -14,6 +14,8 @@ import org.jboss.netty.channel.SimpleChannelUpstreamHandler
 import org.jboss.netty.channel.ChannelHandlerContext
 import org.jboss.netty.channel.ChannelStateEvent
 import org.jboss.netty.channel.MessageEvent
+import org.json.JSONObject
+import org.json.JSONTokener
 
 /**
  * Uses a vanilla plain text socket to accept server registrations.
@@ -38,11 +40,20 @@ class SocketRegistrationServer(registry:Registry, port:Int) {
     var registered:Option[Instance] = None
     override def messageReceived(ctx:ChannelHandlerContext, e:MessageEvent) {
       val message = e.getMessage().asInstanceOf[String]
+      val json = new JSONObject(new JSONTokener(message))
       try {
-	      val instance = JsonInstance.create(message)
-	      registry.register(instance)
-	      registered = Some(instance)
-	      ctx.getChannel().write("OK\n")
+        registered match {
+          case None => {
+	        val instance = JsonInstance.createInstance(json)
+	        registry.register(instance)
+	        registered = Some(instance)
+	        ctx.getChannel().write("OK\n")
+          }
+          case Some(i) => {
+            val prop = JsonInstance.createProp(json)
+            registry.update(i.key, prop)
+          }
+        }
       } catch {
         case e:DuplicateRegistrationException => {
           ctx.getChannel().write(e.getMessage + "\n")

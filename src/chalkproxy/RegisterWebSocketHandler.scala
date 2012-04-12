@@ -29,7 +29,8 @@ class RegisterWebSocketHandler(registry:Registry) extends WebSocketHandler {
 		}
 
 		def onMessage(data:String) {
-		  val instance = JsonInstance.create(data)
+		  val json = new JSONObject(new JSONTokener(data))
+		  val instance = JsonInstance.createInstance(json)
 		  registry.register(instance)
 		}
 

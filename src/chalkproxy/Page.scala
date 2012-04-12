@@ -15,7 +15,7 @@ object Page {
     {groupNames.map { groupName => {
       val instances = allGroups.getOrElse(groupName, Nil)
       groupHtml(groupName, instances)
-    } }}
+    } } }
     </div>
   }
   
@@ -40,7 +40,7 @@ object Page {
       <div class="row instance" id={instanceId(instance.key)}>
         <div class={"span3 main-link " + disable}><a href={"/"+instance.prefix}>{instance.name}</a></div>
         <div class={"span1" + disable}>{instance.icons.map { icon => iconHtml(instance, icon) } }</div>
-        <div class={"span8" + disable}>{instance.props.map { case Prop(name, value, url) => { <span class="prop"> <b>{name}:</b> {
+        <div class={"span8" + disable}>{instance.props.map { case Prop(name, value, url) => { <span class="prop" id={propId(instance.key, name)}> <b>{name}:</b> {
           url match {
             case None => value
             case Some(u) => <a href={u}>{value}</a>
@@ -48,6 +48,7 @@ object Page {
         }</span> ++ Text(" ")} } }</div>
       </div>
   }
+  def propId(instanceKey:String, propName:String) = "prop-" + instanceKey + "-" + propName.replaceAll(" ", "_").toLowerCase()
   def groupId(group:String) = "group-"+group.replaceAll(" ", "_").toLowerCase()
   def instanceId(key:String) = "instance-" + key
 }

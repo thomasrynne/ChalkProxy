@@ -78,6 +78,24 @@ class Registry(val name:String, val rootGroupFilter:Option[List[String]]) {
 	  readWriteLock.writeLock().unlock()
     }
   }
+  
+  def update(instanceKey:String, prop:Prop) {
+    try {
+	  readWriteLock.writeLock().lock()
+      registerSessions.get(instanceKey) match {
+	    case None =>
+	    case Some(instance) => {
+	      val correctedProps = instance.props.map {
+	        p => if (p.name == prop.name) prop else p
+	      }
+	      registerSessions = registerSessions + (instanceKey -> instance.copy(props=correctedProps))
+	      update(Set(instance.group), props = List( Page.propId(instance.key, prop.name) ) )
+	    }
+	  }
+    } finally {
+	  readWriteLock.writeLock().unlock()
+    }
+  }
 
   def unregister(instance:Instance) {
     readWriteLock.writeLock().lock()
@@ -86,20 +104,20 @@ class Registry(val name:String, val rootGroupFilter:Option[List[String]]) {
     readWriteLock.writeLock().unlock()
   }
   
-  private def update(groups:Set[String], enabled:List[String]=Nil, disabled:List[String]=Nil, added:List[String]=Nil) {
+  private def update(groups:Set[String], enabled:List[String]=Nil, disabled:List[String]=Nil, added:List[String]=Nil, props:List[String]=Nil) {
     watchers.toArray(Array[Watcher]()).groupBy(_.groupFilter).foreach { case (groupFilter, w) => {
       val watching = groupFilter match {
         case None => true
         case Some(g) => (g.toSet & groups).nonEmpty 
       }
       if (watching) {
-        val json = createJson(enabled, disabled, added, groupFilter).toString
+        val json = createJson(enabled, disabled, added, props, groupFilter).toString
     	w.foreach(_.notify(json))
       }
     } }
   }
   
-  private def createJson(enabled:List[String], disabled:List[String], added:List[String], groupFilter:Option[List[String]]) = {
+  private def createJson(enabled:List[String], disabled:List[String], added:List[String], props:List[String], groupFilter:Option[List[String]]) = {
     import scala.collection.JavaConversions
     val html = Page.listing(instances, groupFilter)
     val json = new JSONObject()
@@ -107,6 +125,13 @@ class Registry(val name:String, val rootGroupFilter:Option[List[String]]) {
     json.put("enable", new JSONArray(JavaConversions.asJavaCollection(enabled)))
     json.put("disable", new JSONArray(JavaConversions.asJavaCollection(disabled)))
     json.put("add", new JSONArray(JavaConversions.asJavaCollection(added)))
+    json.put("updatedProperties", new JSONArray(JavaConversions.asJavaCollection(props)))
+    json
+  }
+  
+  private def toJson(map:Map[String,String]) = {
+    val json = new JSONObject()
+    map.foreach { case (name, value) => json.put(name, value) }
     json
   }
   

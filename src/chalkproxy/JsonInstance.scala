@@ -4,8 +4,7 @@ import org.json.JSONTokener
 import org.json.JSONArray
 
 object JsonInstance {
-  def create(data:String) = {
-	  val json = new JSONObject(new JSONTokener(data))
+  def createInstance(json:JSONObject) = {
 	  val name = json.getString("name")
 	  val group = json.getString("group")
 	  val hostname = json.getString("hostname")
@@ -21,9 +20,11 @@ object JsonInstance {
 	    val jsonProps = if (json.has("props")) json.getJSONArray("props") else new JSONArray()
 	    for (i <- 0 until jsonProps.length()) yield {
 	      val propJson = jsonProps.getJSONObject(i)
-	      Prop(propJson.getString("name"), propJson.getString("value"), if (propJson.has("url")) Some(propJson.getString("url")) else None)
+	      createProp(propJson)
 	    }
 	  }.toList
 	  Instance(name, group, hostname, port, icons, props)
   }
+  
+  def createProp(propJson:JSONObject) = Prop(propJson.getString("name"), propJson.getString("value"), if (propJson.has("url")) Some(propJson.getString("url")) else None)
 }

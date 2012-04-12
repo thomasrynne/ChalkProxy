@@ -1,4 +1,3 @@
-Support long names and many properties
 Property updates
 Persist starts and stops
 About page
