@@ -51,7 +51,14 @@ object Page {
         }</span> ++ Text(" ")} } }</div>
       </div>
   }
-  def propId(instanceKey:String, propName:String) = "prop-" + instanceKey + "-" + propName.replaceAll(" ", "_").toLowerCase()
-  def groupId(group:String) = "group-"+group.replaceAll(" ", "_").toLowerCase()
-  def instanceId(key:String) = "instance-" + key
+  private def clean(text:String) = {
+    val builder = new StringBuilder()
+    for (c <- text.toCharArray()) {
+      if (c.isLetterOrDigit) builder.append(c) else builder.append('_')
+    }
+    builder.toString.toLowerCase
+  }
+  def propId(instanceKey:String, propName:String) = "prop-" + clean(instanceKey + "-" + propName)
+  def groupId(group:String) = "group-"+clean(group)
+  def instanceId(key:String) = "instance-" + clean(key)
 }

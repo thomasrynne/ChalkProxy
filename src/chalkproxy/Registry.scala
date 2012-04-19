@@ -12,8 +12,18 @@ class RegisterSession
 case class Icon(text:String, image:String, url:String)
 case class Prop(name:String, value:String, url:Option[String])
 case class Instance(name:String, group:String, host:String, port:Int, icons:List[Icon], props:List[Prop]) {
-  def prefix = name.replaceAll(" ", "_")
-  def key = prefix.toLowerCase()
+  lazy val prefix = {
+    val builder = new StringBuilder()
+    for (c <- name) {
+      if (c.isLetterOrDigit || c == '@') {
+        builder.append(c)
+      } else {
+        builder.append('_')
+      }
+    }
+    builder.toString
+  }
+  lazy val key = prefix.toLowerCase()
   def groupKey = group.replaceAll(" ", "_").toLowerCase()
 }
 case class InstanceSnapshot(instance:Instance, isClosed:Boolean)

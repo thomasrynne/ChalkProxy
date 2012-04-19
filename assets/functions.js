@@ -5,14 +5,14 @@ $(function() {
         var group = $('#groups')
         group.replaceWith(update)
         jQuery.each(data.enable, function(index, value) {
-          var ele = $('#'+value).children()
- //         ele.css({opacity: 0.4})
-//          ele.fadeTo(1000, 1.0)
+            var ele = $('#'+value).children()
+          ele.css({opacity: 0.4})
+          ele.fadeTo(1000, 1.0)
         })
         jQuery.each(data.disable, function(index, value) {
-          var ele = $('#'+value).children()
- //         ele.css({opacity: 1.0})
- //         ele.fadeTo(1000, 0.4)
+            var ele = $('#'+value).children()
+          ele.css({opacity: 1.0})
+          ele.fadeTo(1000, 0.4)
         })
         jQuery.each(data.add, function(index, value) {
           var ele = $('#'+value)
@@ -22,7 +22,7 @@ $(function() {
         })
         jQuery.each(data.updatedProperties, function(index, value) {
           var ele = $('#'+value)
-	      ele.css("backgroundColor", '#ffff9C').animate({backgroundColor: '#ffffff'}, 5000)
+	      ele.css("backgroundColor", '#ffff9C').animate({backgroundColor: '#ffffff'}, 10000)
         })
     }
     var reload = function() {

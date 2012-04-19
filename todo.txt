@@ -1,6 +1,7 @@
-Better animation
 Persist starts and stops
 About page
+Mode than one demo mode (to test different features)
 Create single server jar
 Better build/start/stop script
 Improve Readme (more on server registration)
+Apply difference, instead of replaceWith
