@@ -94,8 +94,8 @@ class PageHandler(registry:Registry) extends AbstractHandler {
         <!-- <script type="text/javascript" src="https://getfirebug.com/firebug-lite-debug.js"></script> -->
     </head>
     <body>
-        <div class="container">
-          <div class="row">
+        <div class="container-fluid">
+          <div class="row-fluid">
             <div class="span3">&nbsp;{link}</div>
             <h1  class="span6">{registry.name}</h1>
             <div class="span3"><span id='status'></span></div>

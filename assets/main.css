@@ -3,6 +3,9 @@ x.row > [class*="span"] {
 }
 body {
   margin-top: 1em;
+  max-width: 960px;
+  margin-left: auto;
+  margin-right: auto;
 }
 .icon {
   max-width: 2em;
@@ -24,41 +27,3 @@ h1 {
 .main-link {
   font-size: medium;
 }
-/*
-.xinstance {
-  margin-left: 2em;
-}
-.instance-link {
-  font-size: 1.5em;
-  margin-right: 1em;
-  min-width:10em;
-}
-.launch {
-  font-size: 2em;
-}
-#status {
-  width: 5em;
-  float: right;
-  margin-right: 2em;
-}
-.icons {
-}
-.instance:hover { background-color:#ffffaa; }
-.main-link, .icons, .props { }
-h1 {
-  margin-top: 1em;
-  text-align: center;
-}
-#others {
-  float: left;
-  margin-right: 2em;
-}
-span { vertical-align: middle; }
-x { text-decoration:underline; vertical-align: middle;}
-#logo {
-  float: right;
-  border: solid 2px black;	
-  width: 9em;
-  height: 6em;
-}
-*/

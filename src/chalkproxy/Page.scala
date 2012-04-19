@@ -11,7 +11,7 @@ object Page {
       case Some(filter) => filter
       case None => allGroups.keySet.toList.sorted
     }
-    <div id="groups" class="container">
+    <div id="groups" class="container-fluid">
     {groupNames.map { groupName => {
       val instances = allGroups.getOrElse(groupName, Nil)
       groupHtml(groupName, instances)
@@ -20,7 +20,7 @@ object Page {
   }
   
   def groupHtml(groupName:String, instances:List[InstanceSnapshot]) = {
-    <div class="row group"><h2>{groupName}</h2></div> ++
+    <div class="row-fluid group"><h2>{groupName}</h2></div> ++
     {instances.sortBy(_.instance.prefix).map { entry => { instanceHtml(entry.instance, !entry.isClosed) } } }
   }
   
@@ -40,7 +40,7 @@ object Page {
   
   def instanceHtml(instance:Instance, active:Boolean) = {
     val disable= if (!active) " disable" else ""
-      <div class="row instance" id={instanceId(instance.key)}>
+      <div class="row-fluid instance" id={instanceId(instance.key)}>
         <div class={"span3 main-link " + disable}><a href={"/"+instance.prefix}>{instance.name}</a></div>
         <div class={"span1" + disable}>{instance.icons.map { icon => iconHtml(instance, icon) } }</div>
         <div class={"span8" + disable}>{instance.props.map { case Prop(name, value, url) => { <span class="prop" id={propId(instance.key, name)}> <b>{name}:</b> {
