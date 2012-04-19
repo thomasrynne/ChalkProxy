@@ -24,13 +24,16 @@ object Page {
     {instances.sortBy(_.instance.prefix).map { entry => { instanceHtml(entry.instance, !entry.isClosed) } } }
   }
   
+  private def addPrefix(instance:Instance, url:String) = {
+    if (url.startsWith("/") || url.contains("://")) url else "/" + instance.prefix + "/" + url
+  }
+  
   def iconHtml(instance:Instance, icon:Icon) = {
     <a class="" href={instance.key + icon.url}>{
       if (icon.image == "") {
         icon.text
       } else {
-        val src = if (icon.image.startsWith("/")) icon.image else "/" +instance.key + "/" + icon.image
-        <img class="icon" src={src} alt={icon.text}/>
+        <img class="icon" src={addPrefix(instance, icon.image)} alt={icon.text}/>
       }
     }</a>
   }
@@ -43,7 +46,7 @@ object Page {
         <div class={"span8" + disable}>{instance.props.map { case Prop(name, value, url) => { <span class="prop" id={propId(instance.key, name)}> <b>{name}:</b> {
           url match {
             case None => value
-            case Some(u) => <a href={u}>{value}</a>
+            case Some(u) => <a href={addPrefix(instance, u)}>{value}</a>
           }
         }</span> ++ Text(" ")} } }</div>
       </div>

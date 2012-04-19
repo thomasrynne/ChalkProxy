@@ -34,6 +34,7 @@ class Demo(chalkHostname:String, chalkPort:Int, localHostname:String) {
           ChalkProperty("user", "t homas rynne"),
           ChalkProperty("started", "20Apr2012 14:54"),
           ChalkProperty("Status", "starting"),
+          ChalkProperty("headers", "here", Some("headers")),
           ChalkProperty("pwd", "/home/thomas/code/server/main"), 
           ChalkProperty("user", "t homas rynne"),
           ChalkProperty("started", "20Apr2012 14:54"),
