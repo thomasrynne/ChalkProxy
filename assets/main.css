@@ -18,7 +18,7 @@ h1 {
   font-size: medium;
 }
 .iconimage { /*using the name icon-image makes the images tiny, odd*/
-  max-width: 45%; /* limit the size of icons */
+  max-width: 45%; /* limit the size of icons, 45% means that two can fit on one row */
 }
 .icon {
   margin: 1px; /* put some space between icons */
@@ -27,7 +27,7 @@ h1 {
 .prop {
   white-space: nowrap; /* prevent linewrap between propery name and value */
 }
-.disable 
+.disable {
   opacity: 0.4; /*grey out off-line instances */
   zoom: 1; filter: alpha(opacity=40) /* needed for IE */
 }
