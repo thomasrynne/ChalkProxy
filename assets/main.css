@@ -17,9 +17,13 @@ h1 {
 .main-link { /* make the proxying link text larger than the rest of the text */
   font-size: medium;
 }
-.icon {
-  max-width: 2em; /* limit the size of icons */
+.iconimage { /*using the name icon-image makes the images tiny, odd*/
+  max-width: 45%; /* limit the size of icons */
 }
+.icon {
+  margin: 1px; /* put some space between icons */
+}
+
 .prop {
   white-space: nowrap; /* prevent linewrap between propery name and value */
 }

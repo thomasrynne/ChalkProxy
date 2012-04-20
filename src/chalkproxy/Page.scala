@@ -29,11 +29,11 @@ object Page {
   }
   
   def iconHtml(instance:Instance, icon:Icon) = {
-    <a class="" href={instance.key + icon.url}>{
+    <a class="icon" href={instance.key + icon.url}>{
       if (icon.image == "") {
         icon.text
       } else {
-        <img class="icon" src={addPrefix(instance, icon.image)} alt={icon.text}/>
+        <img class="iconimage" src={addPrefix(instance, icon.image)} alt={icon.text}/>
       }
     }</a>
   }
