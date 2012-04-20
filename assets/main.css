@@ -1,29 +1,32 @@
-x.row > [class*="span"] {
+/*x.row > [class*="span"] {
   margin-left: 2px;
+}*/
+body { 
+  margin-top: 1em; /*add some whitespace at the top */
+  max-width: 960px; /*limit the width on large screens */
+  margin-left: auto; /* center */
+  margin-right: auto; /* center */
 }
-body {
-  margin-top: 1em;
-  max-width: 960px;
-  margin-left: auto;
-  margin-right: auto;
+h1 {
+  text-align: center; /* center the title */
 }
-.icon {
-  max-width: 2em;
-}
-.prop {
-  white-space: nowrap;
-}
-.disable {opacity: 0.4; zoom: 1; filter: alpha(opacity=40) }
-.group, .instance {
+.group, .instance { /* adds lines between instances */
  border-bottom: 1px solid black;
 }
-.instance {
- background-color:white; 
-}
-.instance:hover { background-color:#ffffaa; }
-h1 {
-  text-align: center;
-}
-.main-link {
+.instance:hover { background-color:#ffffaa; } /* highlight the selected instance */
+.main-link { /* make the proxying link text larger than the rest of the text */
   font-size: medium;
+}
+.icon {
+  max-width: 2em; /* limit the size of icons */
+}
+.prop {
+  white-space: nowrap; /* prevent linewrap between propery name and value */
+}
+.disable 
+  opacity: 0.4; /*grey out off-line instances */
+  zoom: 1; filter: alpha(opacity=40) /* needed for IE */
+}
+.instance { /* meant to make opacity look better in IE, not sure if it works */
+ background-color:white; 
 }
