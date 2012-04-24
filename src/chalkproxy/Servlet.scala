@@ -47,13 +47,8 @@ class ProxyHandler(registry:Registry) extends AbstractHandler {
 
 class PartialHandler(registry:Registry) extends AbstractHandler {
   override def handle(target:String, request:Request, httpRequest:HttpServletRequest, response:HttpServletResponse) {
-    val groupFilter = request.getParameter("groups") match { 
-      case null => None
-      case "all" => None
-      case "" => None
-      case v => Some(v.split(":").toList)
-    }
-    val html = Page.listing(registry.instances, groupFilter)
+    val view = View.create(request.getParameter("groupBy"), request.getParameter("filter"), request.getParameter("filter"))
+    val html = Page.listing(registry.instances, view)
     response.setContentType("text/html")
     response.getWriter.println(html)
     request.setHandled(true)
@@ -74,46 +69,11 @@ class ListHandler(registry:Registry) extends AbstractHandler {
 
 class PageHandler(registry:Registry) extends AbstractHandler {
   override def handle(target:String, request:Request, httpRequest:HttpServletRequest, response:HttpServletResponse) {
-    val (groupFilter, link) = target match {
-      case "/" => (registry.rootGroupFilter, if (registry.rootGroupFilter.isDefined) <a id='othersx' href='/all'>Show all</a> else <span/>)
-      case "/all" => (None, if (registry.rootGroupFilter.isDefined) <a id='othersx' href='/'>Show Special</a> else <span/>)
-    }
-    val html = Page.listing(registry.instances, groupFilter)
-    val groupsFilter = groupFilter match {
-      case Some(g) => g.mkString(":")
-      case None => "all"
-    }
-    val message = ""
-    val page =
-<html>
-    <head debug="true">
-        <title>{registry.name}</title>
-        <link rel="stylesheet" media="screen" href="/assets/bootstrap.css"/>
-        <link rel="stylesheet" media="screen" href="/assets/main.css"/>
-        <link rel="shortcut icon" type="image/png" href="/assets/favicon.png"/>
-        <!-- <script type="text/javascript" src="https://getfirebug.com/firebug-lite-debug.js"></script> -->
-    </head>
-    <body>
-        <div class="container-fluid">
-          <div class="row-fluid">
-            <div class="span3">&nbsp;{link}</div>
-            <h1  class="span6">{registry.name}</h1>
-            <div class="span3"><span id='status'></span></div>
-          </div>
-        </div>
-        { html }
-        <script type="text/javascript">
-          window.WEB_SOCKET_SWF_LOCATION = '/assets/WebSocketMain.swf';
-          window.GROUPS = '{groupsFilter}'; 
-        </script>
-        <script src="/assets/jquery-1.7.1.min.js" type="text/javascript"></script>
-        <script src="/assets/jquery-ui-1.8.18.custom.min.js" type="text/javascript"></script>
-        <script src="/assets/json2.js" type="text/javascript"></script>
-        <script type="text/javascript" src="/assets/swfobject.js"></script>
-        <script type="text/javascript" src="/assets/web_socket.js"></script>
-        <script type="text/javascript" charset="utf-8" src="/assets/functions.js"></script>  
-    </body>
-</html>
+    val view = View.create(request.getParameter("groupBy"), request.getParameter("filter"), request.getParameter("design"))
+    val instances = registry.instances
+    val html = Page.listing(instances, view)
+    val props = instances.flatMap(_.propNames).toSet.toList.sorted
+    val page = Page.fullPage(registry.name, html, props, registry.defaultView, view)
     response.setContentType("text/html")
     response.getWriter.println("<!DOCTYPE html>")
     response.getWriter.println(page)

@@ -34,7 +34,11 @@ class SocketRegistrationServer(registry:Registry, port:Int) {
     }
   })
   //bootstrap.setOption("child.keepAlive", true);
-  bootstrap.bind(new InetSocketAddress(port))
+  
+  def start() {
+    println("Accepting registrations on port " + port)
+    bootstrap.bind(new InetSocketAddress(port))
+  }
   
   class NettyRegistrationHandler extends SimpleChannelUpstreamHandler {
     var registered:Option[Instance] = None

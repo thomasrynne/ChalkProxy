@@ -37,7 +37,8 @@ object Run {
     options.addOption("r", "registation-port", true, "the port for socket registrations (default 4000)")
     options.addOption("d", "demo-mode", false, "run in demo mode with built in servers")
     options.addOption("n", "name", true, "The name for this instance of ChalkProxy")
-    options.addOption("g", "groups", true, "The : separated groups which should appear in the root page (if ommited all groups are shown)")
+    options.addOption("g", "group-by", true, "Property to group instances by on the home page (by default there is no grouping)")
+    options.addOption("x", "filter", true, "A : separated list of the groups which should appear in the root page (if ommited all groups are shown)")
     options.addOption("h", "help", false, "print this help message")
     
     val commandLine = new BasicParser().parse(options, args)
@@ -77,20 +78,29 @@ object Run {
         val flashPort = Integer.parseInt(properties.getProperty("flash-port", "8430"))
         val name = properties.getProperty("name", "Chalk Proxy")
         val registrationPort = Integer.parseInt(properties.getProperty("registration-port", "4000"))
-        val groups = {
-         val value = properties.getProperty("groups", "").trim
+        val groupBy = {
+         val value = properties.getProperty("group-by", "").trim
+         value match {
+           case "" => None
+           case _ => Some(value)
+         }
+        }
+        val filter = {
+         val value = properties.getProperty("filter", "").trim
          value match {
            case "" => None
            case _ => Some(value.split(":").toList)
          }
         }
+        if (filter.isDefined && !groupBy.isDefined) {
+          println("You can only specify a filter if a group-by is specified.")
+          println("The group by defines which properties the filter is applied to")
+          System.exit(1)
+        }
         println("Running ChalkProxy")
         try {
-//          org.eclipse.jetty.util.log.Log.setLog(new AbstractLogger() {
-//            
-//          }) //stop jetty logging
-	      val registry = new Registry(name, groups)
-	      new SocketRegistrationServer(registry, registrationPort)
+	      val registry = new Registry(name, View(groupBy, filter))
+	      new SocketRegistrationServer(registry, registrationPort).start()
 	      startWebserver(registry, httpPort)
 	      startFlashSocketServer(flashPort)
 	      startCleanupTimer(registry)

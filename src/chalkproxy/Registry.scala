@@ -24,19 +24,53 @@ case class Instance(name:String, group:String, host:String, port:Int, icons:List
     builder.toString
   }
   lazy val key = prefix.toLowerCase()
+  def valueFor(name:String) = {
+    name match {
+      case "group" => group
+      case _ => props.find(_.name.equalsIgnoreCase(name)).map(_.value).getOrElse("Undefined")
+    }
+  }
   def groupKey = group.replaceAll(" ", "_").toLowerCase()
 }
-case class InstanceSnapshot(instance:Instance, isClosed:Boolean)
+case class InstanceSnapshot(instance:Instance, isClosed:Boolean) {
+  def propNames:Iterable[String] = instance.props.map(_.name)
+}
 case class RegistrationToken(id:Int)
+case class View(groupBy:Option[String], filter:Option[List[String]], showLinks:Boolean=false) {
+  def design = copy(showLinks=true)
+  def hide = copy(showLinks=false)
+  def by(name:String) = copy(groupBy=Some(name))
+  def href = {
+    "/?"+(groupBy.map(v => "groupBy="+v).toList ::: filter.map(v => "filter="+v).toList :::
+    (if(showLinks) List("design=show") else Nil)).mkString("&")
+  }
+}
+object View {
+  def create(groupBy:String, filter:String, design:String) = {
+    val groupByX = groupBy match {
+      case null => None
+      case "" => None
+      case "None"|"none" => None
+      case other => Some(other)
+    }
+    val filterX = filter match { 
+      case null => None
+      case "All"|"all" => None
+      case "" => None
+      case v => Some(v.split(":").toList)
+    }
+    View(groupByX, filterX, "show"==design)
+  }
+}
 trait Watcher {
   def notify(html:String)
-  def groupFilter:Option[List[String]]
+  def view:View
 }
 class DuplicateRegistrationException(message:String) extends Exception(message)
 /**
  * Represents the state of the chalk board
  */
-class Registry(val name:String, val rootGroupFilter:Option[List[String]]) {
+class Registry(val name:String, val defaultView:View) {
 
   val readWriteLock = new ReentrantReadWriteLock
   var registerSessions = Map[String,Instance]()
@@ -115,21 +149,15 @@ class Registry(val name:String, val rootGroupFilter:Option[List[String]]) {
   }
   
   private def update(groups:Set[String], enabled:List[String]=Nil, disabled:List[String]=Nil, added:List[String]=Nil, props:List[String]=Nil) {
-    watchers.toArray(Array[Watcher]()).groupBy(_.groupFilter).foreach { case (groupFilter, w) => {
-      val watching = groupFilter match {
-        case None => true
-        case Some(g) => (g.toSet & groups).nonEmpty 
-      }
-      if (watching) {
-        val json = createJson(enabled, disabled, added, props, groupFilter).toString
-    	w.foreach(_.notify(json))
-      }
+    watchers.toArray(Array[Watcher]()).groupBy(_.view).foreach { case (view, w) => {
+      val json = createJson(enabled, disabled, added, props, view).toString
+      w.foreach(_.notify(json))
     } }
   }
   
-  private def createJson(enabled:List[String], disabled:List[String], added:List[String], props:List[String], groupFilter:Option[List[String]]) = {
+  private def createJson(enabled:List[String], disabled:List[String], added:List[String], props:List[String], view:View) = {
     import scala.collection.JavaConversions
-    val html = Page.listing(instances, groupFilter)
+    val html = Page.listing(instances, view)
     val json = new JSONObject()
     json.put("html", html.toString)
     json.put("enable", new JSONArray(JavaConversions.asJavaCollection(enabled)))
