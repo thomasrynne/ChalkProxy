@@ -7,6 +7,9 @@ body {
   margin-left: auto; /* center */
   margin-right: auto; /* center */
 }
+.title {
+  margin-bottom: 0.5em;
+}
 h1 {
   text-align: center; /* center the title */
 }

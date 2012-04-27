@@ -80,9 +80,9 @@ object Page {
           }
         } }
       }
-      <span>Group by:</span> ++ groupByText ++ <a href={view.hide.href}>(hide)</a>
+      <span>Group by:</span> ++ Text(" ") ++ groupByText ++ Text("[") ++ <a href={view.hide.href} title="Hide group by options">X</a> ++ Text("]")
     } else {
-      <span>{view.groupBy.map(v => "Group By " + v).getOrElse("")} <a href={view.design.href}>...</a></span>
+      <span>{view.groupBy.map(v => "Grouped By " + v.capitalize).getOrElse("")} <a href={view.design.href} title="Change group by">...</a></span>
     }
     
 <html>
@@ -95,7 +95,7 @@ object Page {
     </head>
     <body>
         <div class="container-fluid">
-          <div class="row-fluid">
+          <div class="row-fluid title">
             <div class="span3">{link}</div>
             <h1  class="span6">{title}</h1>
             <div class="span3"><span id='status'></span></div>
