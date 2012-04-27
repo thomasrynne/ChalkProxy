@@ -99,7 +99,7 @@ object Run {
         }
         println("Running ChalkProxy")
         try {
-	      val registry = new Registry(name, View(groupBy, filter))
+	      val registry = new Registry(name, View(groupBy.getOrElse("None"), filter))
 	      new SocketRegistrationServer(registry, registrationPort).start()
 	      startWebserver(registry, httpPort)
 	      startFlashSocketServer(flashPort)

@@ -3,6 +3,7 @@ package chalkproxy
 import java.io.IOException
 import java.util.Set
 import java.util.concurrent.CopyOnWriteArraySet
+import java.net.URLDecoder
 import javax.servlet.http.HttpServletRequest
 import org.eclipse.jetty.websocket.WebSocket
 import org.eclipse.jetty.websocket.WebSocketHandler;
@@ -12,10 +13,9 @@ class WatchWebsocketHandler(registry:Registry) extends WebSocketHandler {
 
 	def doWebSocketConnect(request:HttpServletRequest, protocol:String) = {
 	  val slashes = request.getPathInfo().split("/")
-	  val groupBy = slashes(2)
-	  val filter = slashes(3)
+	  val groupBy = URLDecoder.decode(slashes(2))
+	  val filter = slashes(3).split(":").map(URLDecoder.decode(_)).mkString(":")
 	  val design = slashes(4)
-	  println(slashes.toList)
 	  val view = View.create(groupBy, filter, design)
       new WatcherWebSocket(view)
 	}

@@ -9,8 +9,8 @@ object Page {
   def listing(instances:List[InstanceSnapshot], view:View) = {
     val main = {
       view.groupBy match {
-        case None => instancesHtml(instances)
-        case Some(prop) => {
+        case "None" => instancesHtml(instances)
+        case prop => {
           val allGroups = instances.groupBy(_.instance.valueFor(prop))
           val groupNames = view.filter match {
             case Some(filter) => filter
@@ -64,16 +64,10 @@ object Page {
       </div>
   }
   def fullPage(title:String, body:NodeSeq, props:List[String], rootView:View, view:View) = {
-    val groupBy = view.groupBy.getOrElse("None")
-    val filter = view.filter match {
-      case Some(g) => g.mkString(":")
-      case None => "all"
-    }
-    val design = if (view.showLinks) "show" else "hide"
     val link = if (view.showLinks) {
       val groupByText = {
         ("None" :: props).map { p => {
-          if (p == groupBy) {
+          if (p == view.groupBy) {
             <span class="groupby-selected">{p.capitalize}</span> ++ Text(" ")
           } else {
             <a class="groupby-option" href={view.by(p).href}>{p.capitalize}</a> ++ Text(" ")
@@ -82,7 +76,7 @@ object Page {
       }
       <span>Group by:</span> ++ Text(" ") ++ groupByText ++ Text("[") ++ <a href={view.hide.href} title="Hide group by options">X</a> ++ Text("]")
     } else {
-      <span>{view.groupBy.map(v => "Grouped By " + v.capitalize).getOrElse("")} <a href={view.design.href} title="Change group by">...</a></span>
+      <span>{view.groupBy match { case "None" => ""; case v => "Grouped By " + v.capitalize}} <a href={view.design.href} title="Change group by">...</a></span>
     }
     
 <html>
@@ -104,9 +98,8 @@ object Page {
         { body }
         <script type="text/javascript">
           window.WEB_SOCKET_SWF_LOCATION = '/assets/WebSocketMain.swf';
-          window.GROUPBY = '{groupBy}'
-          window.FILTER = '{filter}';
-          window.DESIGN = '{design}'; 
+          window.PARAMS = '{view.params}'
+          window.PATH = '{view.asPath}'
         </script>
         <script src="/assets/jquery-1.7.1.min.js" type="text/javascript"></script>
         <script src="/assets/jquery-ui-1.8.18.custom.min.js" type="text/javascript"></script>

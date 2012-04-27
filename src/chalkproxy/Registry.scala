@@ -5,6 +5,7 @@ import org.json.JSONArray
 import scala.concurrent.SyncVar
 import scala.xml.NodeSeq
 import scala.actors.threadpool.locks.ReentrantReadWriteLock
+import java.net.URLEncoder
 
 class RegisterSession
 
@@ -36,22 +37,31 @@ case class InstanceSnapshot(instance:Instance, isClosed:Boolean) {
   def propNames:Iterable[String] = instance.props.map(_.name)
 }
 case class RegistrationToken(id:Int)
-case class View(groupBy:Option[String], filter:Option[List[String]], showLinks:Boolean=false) {
+case class View(groupBy:String, filter:Option[List[String]], showLinks:Boolean=false) {
   def design = copy(showLinks=true)
   def hide = copy(showLinks=false)
-  def by(name:String) = copy(groupBy=Some(name))
-  def href = {
-    "/?"+(groupBy.map(v => "groupBy="+v).toList ::: filter.map(v => "filter="+v).toList :::
+  def by(name:String) = copy(groupBy=name)
+  def href = "/?"+ params
+  def params = {
+    (List("groupBy="+URLEncoder.encode(groupBy)) ::: filter.map(v => "filter="+v).toList :::
     (if(showLinks) List("design=show") else Nil)).mkString("&")
+  }
+  def asPath = {
+    "/"+URLEncoder.encode(groupBy) + "/" + {
+      filter match {
+        case None => "All"
+        case Some(values) => values.map(URLEncoder.encode(_)).mkString(":")
+      }
+    } + "/" + (if(showLinks) "Show" else "Hide")
   }
 }
 object View {
   def create(groupBy:String, filter:String, design:String) = {
     val groupByX = groupBy match {
-      case null => None
-      case "" => None
-      case "None"|"none" => None
-      case other => Some(other)
+      case null => "None"
+      case "" => "None"
+      case "None"|"none" => "None"
+      case other => other
     }
     val filterX = filter match { 
       case null => None

@@ -33,8 +33,7 @@ $(function() {
     }
     var reload = function() {
       $.get('/partial?random='+
-        Math.floor(Math.random()*10000)+
-        '&groupBy='+window.GROUPBY+'&filter='+window.FILTER+"&design="+window.DESIGN, function(data) {
+        Math.floor(Math.random()*10000)+'&'+window.PARAMS, function(data) {
           $('#groups').replaceWith(data)
       })
     }
@@ -46,7 +45,7 @@ $(function() {
           wsHost = wsHost + ":" + window.location.port
         }
         var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket
-        var watchSocket = new WS("ws://"+wsHost+"/watch/"+window.GROUPBY+"/"+window.FILTER+"/"+window.DESIGN)
+        var watchSocket = new WS("ws://"+wsHost+"/watch"+window.PATH)
         watchSocket.onclose = function() {
             $('#status').html('Disconnected')
             setTimeout(connect, 5000);
