@@ -27,7 +27,15 @@ h1 {
 .prop {
   white-space: nowrap; /* prevent linewrap between propery name and value */
 }
-.disable {
+.main-link.disable {
+  opacity: 0.4; /*grey out off-line instances */
+  zoom: 1; filter: alpha(opacity=40) /* needed for IE */
+}
+.icons.disable {
+  opacity: 0.15; /*grey out off-line instances */
+  zoom: 1; filter: alpha(opacity=15) /* needed for IE */
+}
+.props.disable {
   opacity: 0.4; /*grey out off-line instances */
   zoom: 1; filter: alpha(opacity=40) /* needed for IE */
 }

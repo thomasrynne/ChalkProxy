@@ -1,18 +1,24 @@
-$(function() {            
+$(function() {
+    var animate = function(ele, from, to) {
+          ele.css({opacity: from})
+          ele.fadeTo(1000, to)
+    };
     var receiveEvent = function(event) {
         var data = JSON.parse(event.data)
         var update = $(data.html)
         var group = $('#groups')
         group.replaceWith(update)
         jQuery.each(data.enable, function(index, value) {
-            var ele = $('#'+value).children()
-          ele.css({opacity: 0.4})
-          ele.fadeTo(1000, 1.0)
+           var ele = $('#'+value)
+         animate(ele.children('.main-link'), 0.4, 1.0)
+         animate(ele.children('.icons'), 0.15, 1.0)
+         animate(ele.children('.props'), 0.4, 1.0)
         })
         jQuery.each(data.disable, function(index, value) {
-            var ele = $('#'+value).children()
-          ele.css({opacity: 1.0})
-          ele.fadeTo(1000, 0.4)
+            var ele = $('#'+value)
+          animate(ele.children('.main-link'), 1.0, 0.4)
+          animate(ele.children('.icons'), 1.0, 0.15)
+          animate(ele.children('.props'), 1.0, 0.4)
         })
         jQuery.each(data.add, function(index, value) {
           var ele = $('#'+value)

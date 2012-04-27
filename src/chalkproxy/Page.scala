@@ -53,9 +53,9 @@ object Page {
   def instanceHtml(instance:Instance, active:Boolean) = {
     val disable= if (!active) " disable" else ""
       <div class="row-fluid instance" id={instanceId(instance.key)}>
-        <div class={"span3 main-link " + disable}><a href={"/"+instance.prefix}>{instance.name}</a></div>
-        <div class={"span1" + disable}>{instance.icons.map { icon => iconHtml(instance, icon) } }</div>
-        <div class={"span8" + disable}>{instance.props.map { case Prop(name, value, url) => { <span class="prop" id={propId(instance.key, name)}> <b>{name}:</b> {
+        <div class={"span3 main-link" + disable}><a href={"/"+instance.prefix}>{instance.name}</a></div>
+        <div class={"span1 icons" + disable}>{ instance.icons.map { icon => iconHtml(instance, icon) } }</div>
+        <div class={"span8 props" + disable}>{instance.props.map { case Prop(name, value, url) => { <span class="prop" id={propId(instance.key, name)}> <b>{name}:</b> {
           url match {
             case None => value
             case Some(u) => <a href={addPrefix(instance, u)}>{value}</a>
