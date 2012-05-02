@@ -16,7 +16,7 @@ case class Instance(name:String, group:String, host:String, port:Int, icons:List
   lazy val prefix = {
     val builder = new StringBuilder()
     for (c <- name) {
-      if (c.isLetterOrDigit || c == '@') {
+      if (c.isLetterOrDigit || c == '@' || c == '-' || c == '.') {
         builder.append(c)
       } else {
         builder.append('_')
