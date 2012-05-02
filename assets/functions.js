@@ -39,6 +39,7 @@ $(function() {
     }
     WEB_SOCKET_DEBUG = true
     window.WEB_SOCKET_SWF_LOCATION = "/assets/WebSocketMain.swf";
+    var hasConnected = false
     var connect = function() {
         var wsHost = window.location.hostname
         if (window.location.port != "") {
@@ -47,10 +48,16 @@ $(function() {
         var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket
         var watchSocket = new WS("ws://"+wsHost+"/watch"+window.PATH)
         watchSocket.onclose = function() {
-            $('#status').html('Disconnected')
+          //If we get onclose before onopen then the flash websocket plugin is not working
+          var msg = 'Not connected'
+          if (hasConnected) {
+            msg = 'Disconnected'
             setTimeout(connect, 5000);
+          }
+          $('#status').html(msg)
         };
         watchSocket.onopen = function() {
+            hasConnected = true
             reload()
             $('#status').html('Connected')
         };
