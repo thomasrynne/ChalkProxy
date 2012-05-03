@@ -69,7 +69,12 @@ class ListHandler(registry:Registry) extends AbstractHandler {
 
 class PageHandler(registry:Registry) extends AbstractHandler {
   override def handle(target:String, request:Request, httpRequest:HttpServletRequest, response:HttpServletResponse) {
-    val view = View.create(request.getParameter("groupBy"), request.getParameter("filter"), request.getParameter("design"))
+    val view =
+      if (request.getParameter("groupBy") == null && request.getParameter("filter")==null) {
+        registry.defaultView
+      } else {
+        View.create(request.getParameter("groupBy"), request.getParameter("filter"), request.getParameter("design"))
+      }
     val instances = registry.instances
     val html = Page.listing(instances, view)
     val props = instances.flatMap(_.propNames).toSet.toList.sorted
