@@ -35,7 +35,7 @@ object Run {
     options.addOption("f", "file", true, "read settings from a properties file")
     options.addOption("s", "flash-port", true, "the port for the flash socket server (default 8430)")
     options.addOption("r", "registation-port", true, "the port for socket registrations (default 4000)")
-    options.addOption("d", "demo-mode", false, "run in demo mode with built in servers")
+    options.addOption("d", "demo-mode", true, "run in demo mode with built in servers (" + Demo.modes.mkString(",") + ")")
     options.addOption("n", "name", true, "The name for this instance of ChalkProxy")
     options.addOption("g", "group-by", true, "Property to group instances by on the home page (by default there is no grouping)")
     options.addOption("x", "filter", true, "A : separated list of the groups which should appear in the root page (if ommited all groups are shown)")
@@ -102,7 +102,7 @@ object Run {
 	      startFlashSocketServer(flashPort)
 	      startCleanupTimer(registry)
 	      if (properties.containsKey("demo-mode")) {
-	        Demo.start(registrationPort)
+	        Demo.start(registrationPort, properties.getProperty("demo-mode"))
 	        println("Starting in demo mode")
 	      }
         } catch {

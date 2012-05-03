@@ -3,6 +3,7 @@ Persist starts and stops
 About page
 Show something when there are no instances
 Disconnects cause stacktrace
+Remove jetty logging
 Refresh page on reconnect?, but this seems quite frequent
 Mode than one demo mode (to test different features)
 Create single server jar

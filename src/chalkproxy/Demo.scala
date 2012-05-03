@@ -14,34 +14,38 @@ object Demo {
   def main(args:Array[String]) {
     val hostname = if (args.length > 0) args(0) else "localhost"
     val port = if (args.length > 1) args(1).toInt else  4000
+    val mode = if (args.length > 2) args(2) else "start-stop"
     val demo = new Demo(hostname, port, "localhost")
-    demo.go()
+    demo.go(mode)
   }
-  def start(port:Int) {
+  def start(port:Int, mode:String) {
     val demo = new Demo("localhost", port, "localhost")
     new Thread(new Runnable() { def run() {
-      demo.go()
+      demo.go(mode)
     }}, "Demo runner").start()
   }
+  val modes = List("start-all", "start-one", "start-stop-all", "update", "start-stop")
 }
 class Demo(chalkHostname:String, chalkPort:Int, localHostname:String) {
   
   class SampleServer(port:Int, name:String, group:String) {
     val props = List(
-          ChalkProperty("branch", "master", Some("http://git/branches/master")),
+          ChalkProperty("branch", if ((name.hashCode % 2) == 1) "master" else "release-1.0", Some("http://git/branches/master")),
           ChalkProperty("commit", "fjfiwj5osj32"),
           ChalkProperty("pwd", "/home/thomas/code/server/main"), 
-          ChalkProperty("user", "t homas rynne"),
+          ChalkProperty("&b=1", "url escaping test"),
           ChalkProperty("started", "20Apr2012 14:54"),
           ChalkProperty("Status", "starting"),
           ChalkProperty("headers", "here", Some("headers")),
           ChalkProperty("pwd", "/home/thomas/code/server/main"), 
-          ChalkProperty("user", "t homas rynne"),
+          ChalkProperty("user", "t intentional spaces"),
           ChalkProperty("started", "20Apr2012 14:54"),
           ChalkProperty("pid", "2543"))
     val chalkProxy = new ChalkProxy(
           chalkHostname, chalkPort, localHostname, port, name, group,
-          ChalkIcon("Launch 2", "/assets/blowfish.png", "/go.jnlp") :: Nil,
+          ChalkIcon("Launch 2", "/assets/blowfish.png", "/go.jnlp") :: 
+          ChalkIcon("ws", "/assets/blowfish.png", "/go.jnlp") :: 
+          ChalkIcon("p", "", "/go.jnlp") :: Nil,
           props
     )
     val webServer = new TestServer(name, port)
@@ -58,31 +62,39 @@ class Demo(chalkHostname:String, chalkPort:Int, localHostname:String) {
       chalkProxy.stop()
     }
   } 
-  def go() {
-    val foo = List("UAT" -> List("Red u@ thomas roo", "House u also quite long"), "Prod" -> List("James p", "Cloud p"), "Dev" -> List("D1", "D9"))
-    val baseServerPort = 5000
-    val samples = foo.flatMap { case (group, names) => { names.map { name => (name,group) } } }.zipWithIndex.map { case ((name,group), index) => {
-      new SampleServer(baseServerPort+index, name, group)
-    } }.toArray
-    val startAndStop = true
-    if (startAndStop) {
-	    val random = new java.util.Random(0)
+  val foo = List("UAT" -> List("Red u@ thomas roo", "House u also quite long"), "Prod" -> List("James p", "Cloud p"), "Dev" -> List("D1", "D9"))
+  val baseServerPort = 5000
+  val samples = foo.flatMap { case (group, names) => { names.map { name => (name,group) } } }.zipWithIndex.map { case ((name,group), index) => {
+    new SampleServer(baseServerPort+index, name, group)
+  } }.toArray
+  val colors = Array("Red", "Amber", "Green")
+  val random = new java.util.Random(0)
+  def go(mode:String) {
+    mode match {
+      case "start-all" => { samples.foreach(_.start) }
+      case "start-one" => samples.head.start
+      case "start-stop-all" => { samples.foreach(_.start); samples.foreach(_.stop) }
+      case "update" => {
+        samples.foreach(_.start);
+	    while (true) {
+	      val next = random.nextInt(samples.size)
+	      val register = samples(next)
+	      register.update(ChalkProperty("Status", colors(random.nextInt(colors.size))))
+	      Thread.sleep(3000)
+	    }
+      }
+      case "start-stop" => {
 	    while (true) {
 	      val next = random.nextInt(samples.size)
 	      val register = samples(next)
 	      if (register.isStarted()) {
-	        if (random.nextBoolean()) {
-	          register.update(ChalkProperty("Status", "started"))
-	        } else {
-	          register.update(ChalkProperty("Status", "Busy"))
-	        }
+	        register.stop()
 	      } else {
 	        register.start()
 	      }
 	      Thread.sleep(3000)
 	    }
-    } else {
-      samples.foreach(_.start())
+      }
     }
   }
 }
