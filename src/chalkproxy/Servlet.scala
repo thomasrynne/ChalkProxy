@@ -60,7 +60,7 @@ class ListHandler(registry:Registry) extends AbstractHandler {
     response.setContentType("text/plain")
     registry.instances.foreach { entry => {
       if (!entry.isClosed) {
-    	  response.getWriter.println(entry.instance.name)
+    	  response.getWriter.println(entry.instance.prefix)
       }
     }}
     request.setHandled(true)
