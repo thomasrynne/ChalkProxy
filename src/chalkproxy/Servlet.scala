@@ -75,10 +75,11 @@ class PageHandler(registry:Registry) extends AbstractHandler {
       } else {
         View.create(request.getParameter("groupBy"), request.getParameter("filter"), request.getParameter("design"))
       }
+    val showDisconnected = request.getParameter("showDisconnected") == "true"
     val instances = registry.instances
     val html = Page.listing(instances, view)
     val props = instances.flatMap(_.propNames).toSet.toList.sorted
-    val page = Page.fullPage(registry.name, html, props, registry.defaultView, view)
+    val page = Page.fullPage(registry.name, html, props, registry.defaultView, view.copy(showDisconnected = showDisconnected))
     response.setContentType("text/html")
     response.getWriter.println("<!DOCTYPE html>")
     response.getWriter.println(page)

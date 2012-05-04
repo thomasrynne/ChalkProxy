@@ -92,7 +92,7 @@ class Demo(chalkHostname:String, chalkPort:Int, localHostname:String) {
 	      } else {
 	        register.start()
 	      }
-	      Thread.sleep(3000)
+	      Thread.sleep(4000)
 	    }
       }
     }

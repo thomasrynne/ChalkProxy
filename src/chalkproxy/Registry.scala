@@ -37,14 +37,19 @@ case class InstanceSnapshot(instance:Instance, isClosed:Boolean) {
   def propNames:Iterable[String] = instance.props.map(_.name)
 }
 case class RegistrationToken(id:Int)
-case class View(groupBy:String, filter:Option[List[String]], showLinks:Boolean=false) {
+case class View(groupBy:String, filter:Option[List[String]], showLinks:Boolean=false, showDisconnected:Boolean=false) {
   def design = copy(showLinks=true)
   def hide = copy(showLinks=false)
+  def showDisconnectedX = copy(showDisconnected=true)
+  def hideDisconnected = copy(showDisconnected=false)
   def by(name:String) = copy(groupBy=name)
   def href = "/?"+ params
   def params = {
-    (List("groupBy="+URLEncoder.encode(groupBy)) ::: filter.map(v => "filter="+v).toList :::
-    (if(showLinks) List("design=show") else Nil)).mkString("&")
+    (
+      List("groupBy="+URLEncoder.encode(groupBy)) ::: filter.map(v => "filter="+v).toList :::
+      (if(showDisconnected) List("showDisconnected=true") else Nil) :::
+      (if(showLinks) List("design=show") else Nil)
+    ).mkString("&")
   }
   def asPath = {
     "/"+URLEncoder.encode(groupBy) + "/" + {

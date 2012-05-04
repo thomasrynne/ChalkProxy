@@ -2,24 +2,51 @@ $(function() {
     var animate = function(ele, from, to) {
           ele.css({opacity: from})
           ele.fadeTo(1000, to)
-    };
+    }
+    var enable = function(ids) {
+        jQuery.each(ids, function(index, value) {
+          var ele = $('#'+value)
+          animate(ele.children('.main-link'), 0.4, 1.0)
+          animate(ele.children('.icons'), 0.15, 1.0)
+          animate(ele.children('.props'), 0.4, 1.0)
+        })
+    }
+    var disable = function(ids) {
+        jQuery.each(ids, function(index, value) {
+          var ele = $('#'+value)
+          animate(ele.children('.main-link'), 1.0, 0.4)
+          animate(ele.children('.icons'), 1.0, 0.15)
+          animate(ele.children('.props'), 1.0, 0.4)
+        })
+    }
+    var show = function(ids) {
+        jQuery.each(ids, function(index, value) {
+          var ele = $('#'+value)
+          var height = ele.height()
+          ele.css({height:0 })
+          ele.animate({height: height}, {duration: 1000})
+        })
+    }
+    var hide = function(ids) {
+        jQuery.each(ids, function(index, value) {
+          var ele = $('#'+value)
+          ele.css({display: 'block' })
+          ele.animate({height: 0}, {duration: 1000})
+          setTimeout(function() { ele.css({display: 'none' }) }, 1000)
+        })
+    }
     var receiveEvent = function(event) {
         var data = JSON.parse(event.data)
         var update = $(data.html)
         var group = $('#groups')
         group.replaceWith(update)
-        jQuery.each(data.enable, function(index, value) {
-           var ele = $('#'+value)
-         animate(ele.children('.main-link'), 0.4, 1.0)
-         animate(ele.children('.icons'), 0.15, 1.0)
-         animate(ele.children('.props'), 0.4, 1.0)
-        })
-        jQuery.each(data.disable, function(index, value) {
-            var ele = $('#'+value)
-          animate(ele.children('.main-link'), 1.0, 0.4)
-          animate(ele.children('.icons'), 1.0, 0.15)
-          animate(ele.children('.props'), 1.0, 0.4)
-        })
+        if (window.SHOW_DISCONNECTED) {
+          enable(data.enable)
+          disable(data.disable)
+        } else {
+          show(data.enable)
+          hide(data.disable)
+        }
         jQuery.each(data.add, function(index, value) {
           var ele = $('#'+value)
           var height = ele.height()

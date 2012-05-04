@@ -52,7 +52,8 @@ object Page {
   
   def instanceHtml(instance:Instance, active:Boolean) = {
     val disable= if (!active) " disable" else ""
-      <div class="row-fluid instance" id={instanceId(instance.key)}>
+    val disconnected = if (!active) " disconnected" else ""
+      <div class={"row-fluid instance" + disconnected} id={instanceId(instance.key)}>
         <div class={"span3 main-link" + disable}><a href={"/"+instance.prefix}>{instance.name}</a></div>
         <div class={"span1 icons" + disable}>{ instance.icons.map { icon => iconHtml(instance, icon) } }</div>
         <div class={"span8 props" + disable}>{instance.props.map { case Prop(name, value, url) => { <span class="prop" id={propId(instance.key, name)}> <b>{name}:</b> {
@@ -74,11 +75,17 @@ object Page {
           }
         } }
       }
-      <span>Group by:</span> ++ Text(" ") ++ groupByText ++ Text("[") ++ <a href={view.hide.href} title="Hide group by options">X</a> ++ Text("]")
+      <span>[<a href={view.hide.href} title="Hide options">hide options</a>]</span> ++ 
+      <div class="options">
+        <div><span>Group by:</span> {groupByText} </div>
+        <div>Disconnected: {if (view.showDisconnected) <a href={view.hideDisconnected.href}>Hide</a> else <a href={view.showDisconnectedX.href}>Show</a>}</div>
+      </div>
     } else {
-      <span>{view.groupBy match { case "None" => ""; case v => "Grouped By " + v.capitalize}} <a href={view.design.href} title="Change group by">...</a></span>
+      <span>
+        {view.groupBy match { case "None" => ""; case v => "Grouped By " + v.capitalize}}
+        [<a href={view.design.href} title="Change group by or show/hide disabed options">options</a>]
+      </span>
     }
-    
 <html>
     <head debug="true">
         <title>{title}</title>
@@ -86,6 +93,19 @@ object Page {
         <link rel="stylesheet" media="screen" href="/assets/main.css"/>
         <link rel="shortcut icon" type="image/png" href="/assets/favicon.png"/>
         <!-- <script type="text/javascript" src="https://getfirebug.com/firebug-lite-debug.js"></script> -->
+        <style>{if (view.showDisconnected)"""
+.main-link.disable {
+  opacity: 0.4; /*grey out off-line instances */
+  zoom: 1; filter: alpha(opacity=40) /* needed for IE */
+}
+.icons.disable {
+  opacity: 0.15; /*grey out off-line instances */
+  zoom: 1; filter: alpha(opacity=15) /* needed for IE */
+}
+.props.disable {
+  opacity: 0.4; /*grey out off-line instances */
+  zoom: 1; filter: alpha(opacity=40) /* needed for IE */
+}""" else """.disconnected{display: none;}"""}</style>
     </head>
     <body>
         <div class="container-fluid">
@@ -100,6 +120,7 @@ object Page {
           window.WEB_SOCKET_SWF_LOCATION = '/assets/WebSocketMain.swf';
           window.PARAMS = '{view.params}'
           window.PATH = '{view.asPath}'
+          window.SHOW_DISCONNECTED={view.showDisconnected}
         </script>
         <script src="/assets/jquery-1.7.1.min.js" type="text/javascript"></script>
         <script src="/assets/jquery-ui-1.8.18.custom.min.js" type="text/javascript"></script>
