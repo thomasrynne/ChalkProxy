@@ -1,3 +1,9 @@
+Finish about page
+Width broken in IE (960 too small)
+Need whitespace at top and bottom
+No link back to homepage
+/public folder
+some more icons
 Links for filters
 Persist starts and stops
 About page

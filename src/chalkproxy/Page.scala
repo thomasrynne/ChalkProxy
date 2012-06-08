@@ -112,7 +112,7 @@ object Page {
           <div class="row-fluid title">
             <div class="span3">{link}</div>
             <h1  class="span6">{title}</h1>
-            <div class="span3"><span id='status'></span></div>
+            <div class="span3"> [<a href='/About'>About</a>] <span id='status'></span> </div>
           </div>
         </div>
         { body }

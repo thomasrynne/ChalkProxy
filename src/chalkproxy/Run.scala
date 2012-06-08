@@ -98,7 +98,7 @@ object Run {
         try {
 	      val registry = new Registry(name, rootView)
 	      new SocketRegistrationServer(registry, registrationPort).start()
-	      startWebserver(registry, httpPort)
+	      startWebserver(registry, httpPort, registrationPort)
 	      startFlashSocketServer(flashPort)
 	      startCleanupTimer(registry)
 	      if (properties.containsKey("demo-mode")) {
@@ -131,12 +131,13 @@ object Run {
     new FlashSocketServer(port).start()
   }
   
-  private def startWebserver(registry:Registry, port:Int) {
+  private def startWebserver(registry:Registry, port:Int, registerPort:Int) {
 
 	val server = new Server(port)
 	val pageHandler = new PageHandler(registry)
 	val partialHandler = new PartialHandler(registry)
 	val listHandler = new ListHandler(registry)
+	val aboutHandler = new About(registry.name, registerPort)
 	val proxy = new ProxyHandler(registry)
     val watchWebSocketHandler:AbstractHandler = new WatchWebsocketHandler(registry)
     val registerWebSocketHandler = new RegisterWebSocketHandler(registry)
@@ -147,6 +148,7 @@ object Run {
 		override def handle(target:String, request:Request, httpRequest:HttpServletRequest, response:HttpServletResponse) {
 		  val handler:AbstractHandler = target match {
   		    case "/" => pageHandler
+  		    case "/About" => aboutHandler
   		    case "/all" => pageHandler
   		    case "/list" => listHandler
 		    case "/register" => registerWebSocketHandler

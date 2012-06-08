@@ -38,6 +38,9 @@ h1 {
 .instance { /* meant to make opacity look better in IE, not sure if it works */
  background-color:white; 
 }
+#status {
+  margin-left: 1em;
+}
 .groupby-option {
   font-size: smaller;
   opacity: 0.7; /*grey out off-line instances */
