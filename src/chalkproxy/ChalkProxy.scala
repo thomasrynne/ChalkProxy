@@ -98,7 +98,7 @@ class ChalkProxy(wpHost:String, wpPort:Int, serverHost:String, serverPort:Int, v
       if (s != null) {
         s.getOutputStream().write((propertyToJson(prop).toString() + "\n").getBytes("utf8"))
       } else {
-        throw new Exception("Not connected")
+        //throw new Exception("Not connected")
       }
     }
     def stop() {

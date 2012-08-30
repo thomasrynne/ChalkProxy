@@ -2,38 +2,47 @@ package chalkproxy
 import scala.xml.Text
 import scala.xml.NodeSeq
 
+case class Group(name:Option[String], instances:List[InstanceSnapshot])
 /**
  * Holds all the html page generation code
  */
 object Page {
-  def listing(instances:List[InstanceSnapshot], view:View) = {
-    val main = {
-      view.groupBy match {
-        case "None" => instancesHtml(instances)
-        case prop => {
-          val allGroups = instances.groupBy(_.instance.valueFor(prop))
-          val groupNames = view.filter match {
-            case Some(filter) => filter
-            case None => allGroups.keySet.toList.sorted
-          }
-          groupNames.map { groupName => {
-            val instances = allGroups.getOrElse(groupName, Nil)
-            groupHtml(groupName, instances)
-          } }
+  def groups(instances:List[InstanceSnapshot], view:View) = {
+    def sortAndFilter(instances:List[InstanceSnapshot]) = {
+     instances.sortBy(_.instance.key).filter { instance => {
+       if (view.showDisconnected) true else !instance.isClosed
+     }} 
+    }
+    val g = view.groupBy match {
+      case None => Group(None, sortAndFilter(instances)) :: Nil
+      case Some(prop) => {
+        val allGroups = instances.groupBy(_.instance.valueFor(prop))
+        val groupNames = view.filter match {
+          case Some(filter) => filter
+          case None => allGroups.keySet.toList.sortBy(_.toLowerCase())
         }
+        groupNames.map { groupName => {
+          val instances = allGroups.getOrElse(groupName, Nil)
+          Group(Some(groupName), sortAndFilter(instances))
+        } }
       }
+    }
+    g.filter(_.instances.nonEmpty)    
+  }
+  def listing(instances:List[InstanceSnapshot], view:View) = {
+    val gs = groups(instances, view)
+    val main = {
+      gs.flatMap { group => {
+        groupHtml(group.name) :: group.instances.map(instanceHtml(_))
+      } }
     }
     <div id="groups" class="container-fluid">
          { main }
     </div>
   }
   
-  def groupHtml(groupName:String, instances:List[InstanceSnapshot]) = {
-    <div class="row-fluid group"><h2>{groupName}</h2></div> ++ instancesHtml(instances)
-  }
-  
-  def instancesHtml(instances:Seq[InstanceSnapshot]) = {
-    instances.sortBy(_.instance.prefix).map { entry => { instanceHtml(entry.instance, !entry.isClosed) } } 
+  def groupHtml(groupName:Option[String]) = {
+    <div class="row-fluid group" id={groupId(groupName)}>{groupName.toList.map{name => <h2>{name}</h2>}}</div>
   }
   
   private def addPrefix(instance:Instance, url:String) = {
@@ -50,28 +59,36 @@ object Page {
     }</a>
   }
   
-  def instanceHtml(instance:Instance, active:Boolean) = {
+  def propHtml(instance:Instance, prop:Prop):NodeSeq = {
+   <b>{prop.name}:</b> ++ {
+     prop.url match {
+       case None => Text(prop.value)
+       case Some(u) => <a href={addPrefix(instance, u)}>{prop.value}</a>
+     }
+   }
+  }
+  
+  def instanceHtml(instanceSnapshot:InstanceSnapshot) = {
+    val instance = instanceSnapshot.instance
+    val active = !instanceSnapshot.isClosed
     val disable= if (!active) " disable" else ""
     val disconnected = if (!active) " disconnected" else ""
       <div class={"row-fluid instance" + disconnected} id={instanceId(instance.key)}>
         <div class={"span3 main-link" + disable}><a href={"/"+instance.prefix}>{instance.name}</a></div>
         <div class={"span1 icons" + disable}>{ instance.icons.map { icon => iconHtml(instance, icon) } }</div>
-        <div class={"span8 props" + disable}>{instance.props.map { case Prop(name, value, url) => { <span class="prop" id={propId(instance.key, name)}> <b>{name}:</b> {
-          url match {
-            case None => value
-            case Some(u) => <a href={addPrefix(instance, u)}>{value}</a>
-          }
-        }</span> ++ Text(" ")} } }</div>
+        <div class={"span8 props" + disable}>{instance.props.map { case prop@Prop(name, _, _) => {
+          <span class="prop" id={propId(instance.key, name)}>{propHtml(instance,prop)}</span>++ Text(" ")}
+        } }</div>
       </div>
   }
-  def fullPage(title:String, body:NodeSeq, props:List[String], rootView:View, view:View) = {
+  def fullPage(title:String, body:NodeSeq, props:List[String], state:Int, rootView:View, view:View) = {
     val link = if (view.showLinks) {
       val groupByText = {
-        ("None" :: props).map { p => {
+        (None :: props.map(Some(_))).map { p => {
           if (p == view.groupBy) {
-            <span class="groupby-selected">{p.capitalize}</span> ++ Text(" ")
+            <span class="groupby-selected">{p.getOrElse("None").capitalize}</span> ++ Text(" ")
           } else {
-            <a class="groupby-option" href={view.by(p).href}>{p.capitalize}</a> ++ Text(" ")
+            <a class="groupby-option" href={view.by(p).href}>{p.getOrElse("None").capitalize}</a> ++ Text(" ")
           }
         } }
       }
@@ -82,7 +99,7 @@ object Page {
       </div>
     } else {
       <span>
-        {view.groupBy match { case "None" => ""; case v => "Grouped By " + v.capitalize}}
+        {view.groupBy match { case None => ""; case Some(v) => "Grouped By " + v.capitalize}}
         [<a href={view.design.href} title="Change group by or show/hide disabed options">options</a>]
       </span>
     }
@@ -117,6 +134,7 @@ object Page {
         </div>
         { body }
         <script type="text/javascript">
+          window.STATE = {state};
           window.WEB_SOCKET_SWF_LOCATION = '/assets/WebSocketMain.swf';
           window.PARAMS = '{view.params}'
           window.PATH = '{view.asPath}'
@@ -139,6 +157,6 @@ object Page {
     builder.toString.toLowerCase
   }
   def propId(instanceKey:String, propName:String) = "prop-" + clean(instanceKey + "-" + propName)
-  def groupId(group:String) = "group-"+clean(group)
+  def groupId(group:Option[String]) = "group-"+clean(group.getOrElse("none"))
   def instanceId(key:String) = "instance-" + clean(key)
 }

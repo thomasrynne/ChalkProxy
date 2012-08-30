@@ -74,25 +74,46 @@ class Demo(chalkHostname:String, chalkPort:Int, localHostname:String) {
       case "start-all" => { samples.foreach(_.start) }
       case "start-one" => samples.head.start
       case "start-stop-all" => { samples.foreach(_.start); samples.foreach(_.stop) }
+      case "start-stop-repeat" => {
+        while (true) {
+          samples.foreach(_.start);
+          Thread.sleep(3000)
+          samples.foreach(_.stop)
+          Thread.sleep(4000)
+        }
+      }
+      case "one-busy" => {
+        samples.foreach(_.start);
+	    val register = samples(4)
+	    while (true) {
+	      Thread.sleep(500)
+	      register.stop()
+	      Thread.sleep(500)
+	      register.start()
+	      //Thread.sleep(3000)
+	    }
+      }
       case "update" => {
         samples.foreach(_.start);
 	    while (true) {
 	      val next = random.nextInt(samples.size)
 	      val register = samples(next)
 	      register.update(ChalkProperty("Status", colors(random.nextInt(colors.size))))
-	      Thread.sleep(3000)
+	      Thread.sleep(500)
 	    }
       }
       case "start-stop" => {
 	    while (true) {
-	      val next = random.nextInt(samples.size)
-	      val register = samples(next)
-	      if (register.isStarted()) {
-	        register.stop()
-	      } else {
-	        register.start()
-	      }
-	      Thread.sleep(4000)
+	      //val next = random.nextInt(samples.size)
+	      //val register = samples(next)
+	      samples.foreach { register => {
+	        if (register.isStarted()) {
+	          register.stop()
+	        } else {
+	          register.start()
+	        }
+	        Thread.sleep(1000)
+	      } }
 	    }
       }
     }

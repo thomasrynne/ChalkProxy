@@ -5,6 +5,7 @@ import scala.collection.mutable.LinkedList
 import scala.xml.Node
 import org.eclipse.jetty.server.handler.AbstractHandler
 import org.eclipse.jetty.server.Request
+import org.json.JSONObject
 
 class ProxyHandler(registry:Registry) extends AbstractHandler {
   override def handle(target:String, request:Request, httpRequest:HttpServletRequest, response:HttpServletResponse) {
@@ -25,7 +26,7 @@ class ProxyHandler(registry:Registry) extends AbstractHandler {
         response.getWriter.println("404 page not found")
         response.getWriter.println()
         response.getWriter.println("Valid prefixes:")
-        registry.instances.foreach( (instance) => {
+        registry.instances._1.foreach( (instance) => {
           response.getWriter.println(" " + instance.instance.prefix)
         })
             
@@ -47,10 +48,17 @@ class ProxyHandler(registry:Registry) extends AbstractHandler {
 
 class PartialHandler(registry:Registry) extends AbstractHandler {
   override def handle(target:String, request:Request, httpRequest:HttpServletRequest, response:HttpServletResponse) {
-    val view = View.create(request.getParameter("groupBy"), request.getParameter("filter"), request.getParameter("filter"))
-    val html = Page.listing(registry.instances, view)
-    response.setContentType("text/html")
-    response.getWriter.println(html)
+    val browserState = request.getParameter("state").toInt
+    val (instances, state) = registry.instances
+    val json = new JSONObject()
+    if (browserState != state) {
+      val view = View.create(request.getParameter("groupBy"), request.getParameter("filter"), request.getParameter("design"), request.getParameter("showDisconnected"))
+      val html = Page.listing(instances, view)
+      json.put("html", html.toString)
+      json.put("state", state)
+    }
+    response.setContentType("text/json")
+    response.getWriter.println(json.toString)
     request.setHandled(true)
   }
 }
@@ -58,7 +66,7 @@ class PartialHandler(registry:Registry) extends AbstractHandler {
 class ListHandler(registry:Registry) extends AbstractHandler {
   override def handle(target:String, request:Request, httpRequest:HttpServletRequest, response:HttpServletResponse) {
     response.setContentType("text/plain")
-    registry.instances.foreach { entry => {
+    registry.instances._1.foreach { entry => {
       if (!entry.isClosed) {
     	  response.getWriter.println(entry.instance.prefix)
       }
@@ -73,13 +81,12 @@ class PageHandler(registry:Registry) extends AbstractHandler {
       if (request.getParameter("groupBy") == null && request.getParameter("filter")==null) {
         registry.defaultView
       } else {
-        View.create(request.getParameter("groupBy"), request.getParameter("filter"), request.getParameter("design"))
+        View.create(request.getParameter("groupBy"), request.getParameter("filter"), request.getParameter("design"), request.getParameter("showDisconnected"))
       }
-    val showDisconnected = request.getParameter("showDisconnected") == "true"
-    val instances = registry.instances
+    val (instances,state) = registry.instances
     val html = Page.listing(instances, view)
     val props = instances.flatMap(_.propNames).toSet.toList.sorted
-    val page = Page.fullPage(registry.name, html, props, registry.defaultView, view.copy(showDisconnected = showDisconnected))
+    val page = Page.fullPage(registry.name, html, props, state, registry.defaultView, view)
     response.setContentType("text/html")
     response.getWriter.println("<!DOCTYPE html>")
     response.getWriter.println(page)

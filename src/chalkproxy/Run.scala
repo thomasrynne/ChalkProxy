@@ -78,8 +78,7 @@ object Run {
         val flashPort = Integer.parseInt(properties.getProperty("flash-port", "8430"))
         val name = properties.getProperty("name", "Chalk Proxy")
         val registrationPort = Integer.parseInt(properties.getProperty("registration-port", "4000"))
-        val groupBy = properties.getProperty("group-by", "None").trim
-        println(groupBy)
+        val groupBy = properties.getProperty("group-by", "None").trim match { case "None" => None; case x => Some(x) }
         val filter = {
          val value = properties.getProperty("filter", "").trim
          value match {
@@ -87,7 +86,7 @@ object Run {
            case _ => Some(value.split(":").toList)
          }
         }
-        if (filter.isDefined && groupBy == "None") {
+        if (filter.isDefined && groupBy == None) {
           println("You can only specify a filter if group-by is specified.")
           println("The group by defines which properties the filter is applied to")
           System.exit(1)
