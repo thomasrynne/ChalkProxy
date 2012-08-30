@@ -9,13 +9,14 @@ URLs includes a meaningful name for the server you are using.
 
 Features:
  -Supports IE7+, Chrome & Firefox 
- -Chalkboard page is self updating (using websockets)
+ -Chalkboard page is self updating (you don't have to keep pressing refresh)
  -Servers can register arbitrary properties to include in the page (branch/release/user)
  -programmatic access to all servers is available at /list
+ -/<serverName>/ proxies to the server
  
 Requirements:
  -Java 6+
- -Scala 2.8+
+ -Scala 2.9+
  -Linux (although writing a windows start script would probably be easy)
  
 Running:
@@ -23,14 +24,16 @@ Running:
  -cd ChalkProxy
  -set JAVA_HOME and SCALA_HOME
  -./compile
- -./run --demo-mode
+ -./run --demo-mode start-stop
+    This will run ChalkProxy in demo mode so you will see registrations come and go
  -go to http://localhost:8080
-This will run ChalkProxy in demo mode so you will see registrations come and go
+ -see About (http://localhost:8080/About) for more information on registering servers
+ -use ./start and ./stop to leave it running
 
 IE & Firefox
  -IE and Firefox auto update support is achieved using a flash plugin which requires access to port 843
  -You need to either
-  -Forward port 8430 to 843:
+  -Forward port 8430 to 843 using:
       sudo socat TCP-LISTEN:843,fork TCP:localhost:8430
     or
       iptables -t nat -A PREROUTING -p tcp --dport 843 -j REDIRECT --to-port 8430

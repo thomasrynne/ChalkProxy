@@ -8,4 +8,3 @@ Remove jetty logging
 Refresh page on reconnect?, but this seems quite frequent
 Create single server jar
 Better build/start/stop script
-Improve Readme (more on server registration)
