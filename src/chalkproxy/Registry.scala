@@ -185,10 +185,18 @@ class Registry(val name:String, val defaultView:View) {
       added:List[String]=Nil,
       props:List[(Instance,Prop)]=Nil,
       expired:List[Instance]=Nil) {
-    watchers.toArray(Array[Watcher]()).groupBy(_.view).foreach { case (view, w) => {
-      val json = createJson(enabled, disabled, added, props, expired, view).toString
-      w.foreach(_.notify(json))
-    } }
+    try {
+	  watchers.toArray(Array[Watcher]()).groupBy(_.view).foreach { case (view, w) => {
+	    val json = createJson(enabled, disabled, added, props, expired, view).toString
+	    w.foreach(_.notify(json))
+	  } }
+    } catch {
+      case e:Exception => {
+        println("Exception while notifying watchers following a registry update")
+        println("Registry update is OK but watcher notifications may have failed")
+        e.printStackTrace()
+      } 
+    }
   }
   
   private def createInstanceJson(groups:List[Group], key:String, view:View) = {

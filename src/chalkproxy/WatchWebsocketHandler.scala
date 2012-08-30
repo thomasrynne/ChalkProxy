@@ -26,8 +26,17 @@ class WatchWebsocketHandler(registry:Registry) extends WebSocketHandler {
 		var connection : Connection = null
 		val watcher = new Watcher {
 		  def view = WatcherWebSocket.this.view
-		  def notify(html:String) {
-		    connection.sendMessage(html)
+		  def notify(text:String) {
+		    if (connection.isOpen()) {
+		      try {
+		        connection.sendMessage(text)
+		      } catch {
+		        case e:Exception => {
+		          println("Failed while sending notification to websocket")
+		          e.printStackTrace()
+		        }
+		      }
+		    }
 		  }
 		}
 
