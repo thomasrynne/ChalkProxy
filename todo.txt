@@ -1,5 +1,4 @@
 Need whitespace at top and bottom
-No link back to homepage
 /public folder
 some more icons
 Links for filters

@@ -81,7 +81,8 @@ object Page {
         } }</div>
       </div>
   }
-  def fullPage(title:String, body:NodeSeq, props:List[String], state:Int, rootView:View, view:View) = {
+  def fullPage(title:String, homePage:Boolean, body:NodeSeq, props:List[String], state:Int, view:View) = {
+    val home = if (homePage) NodeSeq.Empty else Text("[") ++ <a href="/">Home</a> ++ Text("] ")
     val link = if (view.showLinks) {
       val groupByText = {
         (None :: props.map(Some(_))).map { p => {
@@ -127,7 +128,7 @@ object Page {
     <body>
         <div class="container-fluid">
           <div class="row-fluid title">
-            <div class="span3">{link}</div>
+            <div class="span3">{home++link}</div>
             <h1  class="span6">{title}</h1>
             <div class="span3"> [<a href='/About'>About</a>] <span id='status'></span> </div>
           </div>

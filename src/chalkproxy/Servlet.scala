@@ -77,16 +77,17 @@ class ListHandler(registry:Registry) extends AbstractHandler {
 
 class PageHandler(registry:Registry) extends AbstractHandler {
   override def handle(target:String, request:Request, httpRequest:HttpServletRequest, response:HttpServletResponse) {
-    val view =
+    val (homePage, view) =
       if (request.getParameter("groupBy") == null && request.getParameter("filter")==null) {
-        registry.defaultView
+        (true, registry.defaultView)
       } else {
-        View.create(request.getParameter("groupBy"), request.getParameter("filter"), request.getParameter("design"), request.getParameter("showDisconnected"))
+        (false,
+            View.create(request.getParameter("groupBy"), request.getParameter("filter"), request.getParameter("design"), request.getParameter("showDisconnected")))
       }
     val (instances,state) = registry.instances
     val html = Page.listing(instances, view)
     val props = instances.flatMap(_.propNames).toSet.toList.sorted
-    val page = Page.fullPage(registry.name, html, props, state, registry.defaultView, view)
+    val page = Page.fullPage(registry.name, homePage, html, props, state, view)
     response.setContentType("text/html")
     response.getWriter.println("<!DOCTYPE html>")
     response.getWriter.println(page)
