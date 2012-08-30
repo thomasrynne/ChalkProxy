@@ -96,8 +96,13 @@ object Run {
         println("Default view: group by: " + rootView.groupBy + " filter: " + rootView.filter.getOrElse("None"))
         try {
 	      val registry = new Registry(name, rootView)
+	      val serverProperties = ServerProperties(
+	          httpPort, registrationPort, flashPort, pid,
+	          new File(".").getAbsolutePath(),
+	          new java.util.Date().toString)
+	      
 	      new SocketRegistrationServer(registry, registrationPort).start()
-	      startWebserver(registry, httpPort, registrationPort)
+	      startWebserver(registry, serverProperties)
 	      startFlashSocketServer(flashPort)
 	      startCleanupTimer(registry)
 	      if (properties.containsKey("demo-mode")) {
@@ -109,11 +114,14 @@ object Run {
         }
       }
   }
-  
-  private def writePID() {
+
+  val pid = {
 	val jvmName = ManagementFactory.getRuntimeMXBean().getName()
 	val at = jvmName.indexOf('@')
-	val pid = jvmName.substring(0, at)
+	jvmName.substring(0, at)
+  }
+  
+  private def writePID() {
     val writer = new FileWriter(new File("pid.txt"))
     writer.write(pid)
     writer.write("\n")
@@ -130,13 +138,13 @@ object Run {
     new FlashSocketServer(port).start()
   }
   
-  private def startWebserver(registry:Registry, port:Int, registerPort:Int) {
+  private def startWebserver(registry:Registry, properties:ServerProperties) {
 
-	val server = new Server(port)
+	val server = new Server(properties.httpPort)
 	val pageHandler = new PageHandler(registry)
 	val partialHandler = new PartialHandler(registry)
 	val listHandler = new ListHandler(registry)
-	val aboutHandler = new About(registry.name, registerPort)
+	val aboutHandler = new About(registry, properties)
 	val proxy = new ProxyHandler(registry)
     val watchWebSocketHandler:AbstractHandler = new WatchWebsocketHandler(registry)
     val registerWebSocketHandler = new RegisterWebSocketHandler(registry)
@@ -158,7 +166,7 @@ object Run {
 		  handler.handle(target, request, httpRequest, response)
 		}
       })
-    println("Starting web server on port " + port)
+    println("Starting web server on port " + properties.httpPort)
     server.start
   }
 }

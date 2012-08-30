@@ -80,6 +80,7 @@ trait Watcher {
   def notify(html:String)
   def view:View
 }
+case class ServerProperties(httpPort:Int, registrationPort:Int, flashSocketServerPort:Int, pid:String, pwd:String, started:String)
 class DuplicateRegistrationException(message:String) extends Exception(message)
 /**
  * Represents the state of the chalk board
@@ -92,7 +93,8 @@ class Registry(val name:String, val defaultView:View) {
   var closed = Map[String,java.util.Date]()
   var versions = Map[String,Int]()
   val watchers = new java.util.concurrent.ConcurrentLinkedQueue[Watcher]()
-  
+
+  def watcherCount = watchers.size
   def lookup(name:String) = {
     readWriteLock.readLock.lock()
     val instance = registerSessions.get(name.toLowerCase())
