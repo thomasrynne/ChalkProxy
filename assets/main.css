@@ -3,7 +3,7 @@
 }*/
 body { 
   margin-top: 1em; /*add some whitespace at the top */
-  max-width: 960px; /*limit the width on large screens */
+  max-width: 1000px; /*limit the width on large screens */
   margin-left: auto; /* center */
   margin-right: auto; /* center */
 }
