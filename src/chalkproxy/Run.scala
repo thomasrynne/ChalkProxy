@@ -147,7 +147,6 @@ object Run {
 	val aboutHandler = new About(registry, properties)
 	val proxy = new ProxyHandler(registry)
     val watchWebSocketHandler:AbstractHandler = new WatchWebsocketHandler(registry)
-    val registerWebSocketHandler = new RegisterWebSocketHandler(registry)
     val resourceHandler = new ResourceHandler()
 	resourceHandler.setResourceBase(".")
 	
@@ -158,7 +157,6 @@ object Run {
   		    case "/About" => aboutHandler
   		    case "/all" => pageHandler
   		    case "/list" => listHandler
-		    case "/register" => registerWebSocketHandler
 		    case _ if (target.startsWith("/partial")) => partialHandler
 		    case _ if (target.startsWith("/watch")) => watchWebSocketHandler
 		    case _ => if (target.startsWith("/assets")) resourceHandler else proxy
