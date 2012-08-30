@@ -1,4 +1,3 @@
-Width broken in IE (960 too small)
 Need whitespace at top and bottom
 No link back to homepage
 /public folder
@@ -6,10 +5,8 @@ some more icons
 Links for filters
 Persist starts and stops
 Show something when there are no instances
-Disconnects cause stacktrace
 Remove jetty logging
 Refresh page on reconnect?, but this seems quite frequent
-Mode than one demo mode (to test different features)
 Create single server jar
 Better build/start/stop script
 Improve Readme (more on server registration)
