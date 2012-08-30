@@ -33,7 +33,7 @@ object Page {
     val gs = groups(instances, view)
     val main = {
       gs.flatMap { group => {
-        groupHtml(group.name) :: group.instances.map(instanceHtml(_))
+        group.name.toList.map(g => groupHtml(g)) ::: group.instances.map(instanceHtml(_))
       } }
     }
     <div id="groups" class="container-fluid">
@@ -41,8 +41,8 @@ object Page {
     </div>
   }
   
-  def groupHtml(groupName:Option[String]) = {
-    <div class="row-fluid group" id={groupId(groupName)}>{groupName.toList.map{name => <h2>{name}</h2>}}</div>
+  def groupHtml(groupName:String) = {
+    <div class="row-fluid group" id={groupId(groupName)}><h2>{groupName}</h2></div>
   }
   
   private def addPrefix(instance:Instance, url:String) = {
@@ -157,6 +157,6 @@ object Page {
     builder.toString.toLowerCase
   }
   def propId(instanceKey:String, propName:String) = "prop-" + clean(instanceKey + "-" + propName)
-  def groupId(group:Option[String]) = "group-"+clean(group.getOrElse("none"))
+  def groupId(group:String) = "group-"+clean(group)
   def instanceId(key:String) = "instance-" + clean(key)
 }

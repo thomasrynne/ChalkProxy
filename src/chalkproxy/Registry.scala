@@ -199,15 +199,18 @@ class Registry(val name:String, val defaultView:View) {
       instances.zipWithIndex.find(_._1.instance.key == key) match {
         case None => Nil
         case Some( (instanceSnapshot,position) ) => {
-          val group = if (instances.size > 1 || name.isEmpty) Nil else {
-            val after = if (groupIndex == 0) "" else Page.groupId(groups(groupIndex-1).name)
-            List(createJson(Page.groupId(name), after, Page.groupHtml(name)))
-          }
+          val group = (instances.size > 1, name) match {
+            case (true, _) | (_,None) => Nil
+            case (_, Some(v))  => {
+              val after = if (groupIndex == 0) "" else Page.groupId(groups(groupIndex-1).name.get)
+              List(createJson(Page.groupId(v), after, Page.groupHtml(v)))
+            }
+          } 
           val ins = {
             val after = if (position > 0) {
               Page.instanceId(instances(position-1).instance.key)
             } else {
-              Page.groupId(name)
+              name.map(v=>Page.groupId(v)).getOrElse("")
             }
             createJson(Page.instanceId(key), after, Page.instanceHtml(instanceSnapshot))
           }
@@ -230,7 +233,7 @@ class Registry(val name:String, val defaultView:View) {
       case Some(g) => {
         val groupValue = Some(instance.valueFor(g))
         if (!groups.exists(_.name == groupValue)) {
-          List(Page.groupId(groupValue), Page.instanceId(instance.key)) //the group no longer exists
+          List(Page.groupId(groupValue.get), Page.instanceId(instance.key)) //the group no longer exists
         } else {
           List(Page.instanceId(instance.key))
         }
