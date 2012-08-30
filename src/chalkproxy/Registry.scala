@@ -33,7 +33,7 @@ case class Instance(name:String, group:String, host:String, port:Int, icons:List
   }
   def groupKey = group.replaceAll(" ", "_").toLowerCase()
 }
-case class InstanceSnapshot(instance:Instance, isClosed:Boolean, versionX:Int) {
+case class InstanceSnapshot(instance:Instance, isClosed:Boolean) {
   def propNames:Iterable[String] = instance.props.map(_.name)
 }
 case class RegistrationToken(id:Int)
@@ -87,19 +87,16 @@ class DuplicateRegistrationException(message:String) extends Exception(message)
  */
 class Registry(val name:String, val defaultView:View) {
 
-  val readWriteLock = new ReentrantReadWriteLock
-  var stateSequence = 0
-  var registerSessions = Map[String,Instance]()
-  var closed = Map[String,java.util.Date]()
-  var versions = Map[String,Int]()
-  val watchers = new java.util.concurrent.ConcurrentLinkedQueue[Watcher]()
-
+  private val readWriteLock = new ReentrantReadWriteLock
+  private var stateSequence = 0
+  private var registerSessions = Map[String,Instance]()
+  private var closed = Map[String,java.util.Date]()
+  private val watchers = new java.util.concurrent.ConcurrentLinkedQueue[Watcher]()
+  
   def watcherCount = watchers.size
+  
   def lookup(name:String) = {
-    readWriteLock.readLock.lock()
-    val instance = registerSessions.get(name.toLowerCase())
-    readWriteLock.readLock.unlock()
-    instance
+    read { registerSessions.get(name.toLowerCase()) }
   }
   
   private def write(action: => Unit) {
@@ -111,6 +108,15 @@ class Registry(val name:String, val defaultView:View) {
     }
   }
   
+  private def read[T](action: => T):T = {
+    readWriteLock.readLock().lock()
+    try {
+      action
+    } finally {
+      readWriteLock.readLock().unlock()      
+    }
+  }
+
   def cleanup() {
     write {
       val cutOff = System.currentTimeMillis() - (28*60*60*1000)
@@ -120,7 +126,6 @@ class Registry(val name:String, val defaultView:View) {
         expired.foreach { case (key, _) => {
           closed = closed - key
           registerSessions = registerSessions - key
-          versions = versions - key
         } }
         update(expired=instances)
         stateSequence += 1
@@ -142,7 +147,6 @@ class Registry(val name:String, val defaultView:View) {
 	  val isNew = !closed.contains(instance.key)
 	  closed = closed - instance.key
 	  registerSessions = registerSessions + (instance.key -> instance)
-	  versions = versions + (instance.key -> stateSequence)
 	  if (isNew) {
 	  	update(added=List(instance.key))
 	  } else {
@@ -161,7 +165,6 @@ class Registry(val name:String, val defaultView:View) {
 	        p => if (p.name == prop.name) prop else p
 	      }
 	      registerSessions = registerSessions + (instanceKey -> instance.copy(props=correctedProps))
-	      versions = versions + (instanceKey -> stateSequence)
 	      update(props = List( instance -> prop ) )
 	    }
 	  }
@@ -172,7 +175,6 @@ class Registry(val name:String, val defaultView:View) {
     write {
       stateSequence += 1
       closed = closed + (instance.key -> new java.util.Date())
-      versions = versions + (instance.key -> stateSequence)
       update(disabled=List(instance))
     }
   }
@@ -271,13 +273,9 @@ class Registry(val name:String, val defaultView:View) {
   }
   
   def instances:(List[InstanceSnapshot],Int) = {
-    readWriteLock.readLock().lock()
-    val rs = registerSessions
-    val c = closed
-    val state = stateSequence
-    val v = versions
-    readWriteLock.readLock().unlock()
-    (rs.values.toList.map { instance => InstanceSnapshot(instance, closed.contains(instance.key), v(instance.key))}, state)
+    read {
+      (registerSessions.values.toList.map { instance => InstanceSnapshot(instance, closed.contains(instance.key))}, stateSequence)
+    }
   }
   
   def addWatcher(watcher:Watcher) {
