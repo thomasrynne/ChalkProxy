@@ -81,7 +81,7 @@ object Page {
         } }</div>
       </div>
   }
-  def fullPage(title:String, homePage:Boolean, body:NodeSeq, props:List[String], state:Int, view:View) = {
+  def fullPage(title:String, homePage:Boolean, body:NodeSeq, props:List[String], state:Int, view:View, firebugLite:Boolean) = {
     val home = if (homePage) NodeSeq.Empty else Text("[") ++ <a href="/">Home</a> ++ Text("] ")
     val link = if (view.showLinks) {
       val groupByText = {
@@ -105,12 +105,12 @@ object Page {
       </span>
     }
 <html>
-    <head debug="true">
+    <head>
         <title>{title}</title>
         <link rel="stylesheet" media="screen" href="/assets/bootstrap.css"/>
         <link rel="stylesheet" media="screen" href="/assets/main.css"/>
         <link rel="shortcut icon" type="image/png" href="/assets/favicon.png"/>
-        <!-- <script type="text/javascript" src="https://getfirebug.com/firebug-lite-debug.js"></script> -->
+        { if (firebugLite) <script type="text/javascript" src="https://getfirebug.com/firebug-lite-debug.js"></script> else NodeSeq.Empty }
         <style>{if (view.showDisconnected)"""
 .main-link.disable {
   opacity: 0.4; /*grey out off-line instances */

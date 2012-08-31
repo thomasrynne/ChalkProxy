@@ -84,10 +84,11 @@ class PageHandler(registry:Registry) extends AbstractHandler {
         (false,
             View.create(request.getParameter("groupBy"), request.getParameter("filter"), request.getParameter("design"), request.getParameter("showDisconnected")))
       }
+    val firebugLite = request.getParameter("debug") == "firebuglite"
     val (instances,state) = registry.instances
     val html = Page.listing(instances, view)
     val props = instances.flatMap(_.propNames).toSet.toList.sorted
-    val page = Page.fullPage(registry.name, homePage, html, props, state, view)
+    val page = Page.fullPage(registry.name, homePage, html, props, state, view, firebugLite)
     response.setContentType("text/html")
     response.getWriter.println("<!DOCTYPE html>")
     response.getWriter.println(page)

@@ -91,12 +91,15 @@ class About(registry:Registry, properties:ServerProperties) extends AbstractHand
             <p>ChalkProxy will respond with 'OK' if the registration was sucessful. The registration will remain valid for as
             long as the tcp connection stays open. Whilst connected you can update properties by sending more json:</p>
             <pre>{""" {"name":"status", "value":"Amber", "url":"status"} """}</pre>
+            
             <h2>Links</h2>
             <p>A property can optionaly provide a url to make the property a link.</p>
             <p>If the url is relative (does not start with / or http://) then it will be updated with the prefix
             of the server name. So in the example above the status property will link to /D9/status</p>
+            
             <h2>Listing</h2>
             <p>The url <a href='/list'>/list</a> lists all the registered servers in plain text</p>
+            
             <h2>DNS</h2>
             <p>Half of the benifit of Chalk Proxy is that you don't need to remember strange host names and ports.
             With this in mind, consider setting up a sensible hostname for the machine running ChalkProxy (this machine)
@@ -106,6 +109,11 @@ class About(registry:Registry, properties:ServerProperties) extends AbstractHand
                <pre>sudo socat TCP-LISTEN:80,fork TCP:localhost:8080</pre>
                or<pre>iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8080</pre> 
             </p>
+            
+            <h2>Debug</h2>
+            <p>To help with diagnosing issues on Internet Explorer this link shows 
+            the <a href="/?debug=firebuglite">home page with firebug lite</a>.</p>
+
           </div>
         </div>
     </body>
