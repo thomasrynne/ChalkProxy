@@ -10,6 +10,8 @@ import org.eclipse.jetty.server.handler.HandlerList
 import org.eclipse.jetty.server.handler.DefaultHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
+import org.eclipse.jetty.util.log.Logger;
+
 /**
  * This is a simple test webserver which has two test pages:
  *  -headers which lists the client headers
@@ -104,4 +106,20 @@ class PostServlet extends HttpServlet {
       response.sendRedirect("page")
     }
   }
+}
+class NullLogger extends Logger {
+  def debug(t:Throwable) { }
+  def debug(arg:String, arg1:Object*) { }
+  def debug(arg:String, t:Throwable) { }
+  def getLogger(arg:String) = { this }
+  def getName() = { "NullLogger" }
+  def ignore(arg:Throwable) { }
+  def info(t:Throwable) { }
+  def info(arg:String, args:Object*) { }
+  def info(arg:String, t:Throwable) { }
+  def isDebugEnabled() = { false }
+  def setDebugEnabled(e:Boolean) { }
+  def warn(t:Throwable) { println("Jetty warn"); t.printStackTrace() }
+  def warn(arg:String, arg1:Object*) { println("Jetty warn:" + arg + arg1.toList) }
+  def warn(arg:String, t:Throwable) { println("Jetty warn: " + arg); t.printStackTrace() }
 }

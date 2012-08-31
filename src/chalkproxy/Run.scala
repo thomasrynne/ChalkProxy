@@ -140,6 +140,9 @@ object Run {
   
   private def startWebserver(registry:Registry, properties:ServerProperties) {
 
+    //silence info logs (only needed by the TestServer, but must be set early)
+    org.eclipse.jetty.util.log.Log.setLog(new NullLogger())
+    
 	val server = new Server(properties.httpPort)
 	val pageHandler = new PageHandler(registry)
 	val partialHandler = new PartialHandler(registry)
