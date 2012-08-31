@@ -87,6 +87,7 @@ class DuplicateRegistrationException(message:String) extends Exception(message)
  */
 class Registry(val name:String, val defaultView:View) {
 
+  val serverStartId = new java.util.Random().nextInt(100000)
   private val readWriteLock = new ReentrantReadWriteLock
   private var stateSequence = 0
   private var registerSessions = Map[String,Instance]()

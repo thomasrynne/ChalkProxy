@@ -52,13 +52,17 @@ $(function() {
     }
     var receiveEvent = function(event) {
         var data = JSON.parse(event.data)
-        if (data.messageType == "fullupdate") {
+        if (data.messageType == "refresh") {
+          location.reload(true)
+        } else if (data.messageType == "init") {
+          $('#status').html('Connected')
           if (window.STATE != data.state) {
             group.replaceWith($(data.html))
-            window.STATE = data.state
           }
+          window.STATE = data.state
         } else {
-          if ((window.STATE +1) != data.state) {
+          if ((window.STATE + 1) != data.state) {
+            //??
           }
           window.STATE = data.state
           enable(data.enable)
@@ -85,6 +89,7 @@ $(function() {
     WEB_SOCKET_DEBUG = true
     window.WEB_SOCKET_SWF_LOCATION = "/assets/WebSocketMain.swf";
     var hasConnected = false
+    var reconnectInterval = 1
     var connect = function() {
         var wsHost = window.location.hostname
         if (window.location.port != "") {
@@ -92,22 +97,25 @@ $(function() {
         }
         var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket
         var watchSocket = new WS("ws://"+wsHost+"/watch"+window.PATH)
+        reconnectInterval = Math.min(reconnectInterval * 2, 20)
         watchSocket.onclose = function() {
           //If we get onclose before onopen then the flash websocket plugin is not working
           var msg = 'Not connected'
           if (hasConnected) {
             msg = 'Disconnected'
-            setTimeout(connect, 5000);
+            setTimeout(connect, reconnectInterval);
           }
           $('#status').html(msg)
         };
+        watchSocket.onmessage = receiveEvent
         watchSocket.onopen = function() {
             hasConnected = true
-            //watchSocket.send(window.STATE)
-            //reload()
-            $('#status').html('Connected')
+            reconnectInterval = 1
+            watchSocket.send(JSON.stringify({
+               "serverStartId":window.SERVER_START_ID,
+               "state":window.STATE,
+               "path":window.PATH}))
         };
-        watchSocket.onmessage = receiveEvent
     }
     window.onunload = function(){} //fixes firefox back
     connect()

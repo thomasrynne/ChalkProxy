@@ -2,9 +2,6 @@ Need whitespace at top and bottom
 /public folder
 some more icons
 Links for filters
-Persist starts and stops
 Show something when there are no instances
-Remove jetty logging
-Refresh page on reconnect?, but this seems quite frequent
 Create single server jar
 Better build/start/stop script

@@ -81,7 +81,7 @@ object Page {
         } }</div>
       </div>
   }
-  def fullPage(title:String, homePage:Boolean, body:NodeSeq, props:List[String], state:Int, view:View, firebugLite:Boolean) = {
+  def fullPage(title:String, homePage:Boolean, body:NodeSeq, props:List[String], state:Int, serverStartId:Int, view:View, firebugLite:Boolean) = {
     val home = if (homePage) NodeSeq.Empty else Text("[") ++ <a href="/">Home</a> ++ Text("] ")
     val link = if (view.showLinks) {
       val groupByText = {
@@ -135,6 +135,7 @@ object Page {
         </div>
         { body }
         <script type="text/javascript">
+          window.SERVER_START_ID = {serverStartId}
           window.STATE = {state};
           window.WEB_SOCKET_SWF_LOCATION = '/assets/WebSocketMain.swf';
           window.PARAMS = '{view.params}'

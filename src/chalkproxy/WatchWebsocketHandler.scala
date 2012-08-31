@@ -9,23 +9,41 @@ import javax.servlet.http.HttpServletRequest
 import org.eclipse.jetty.websocket.WebSocket
 import org.eclipse.jetty.websocket.WebSocketHandler;
 import org.eclipse.jetty.websocket.WebSocket.Connection
+import org.json.JSONObject
+import org.json.JSONTokener
 
 class WatchWebsocketHandler(registry:Registry) extends WebSocketHandler {
 
+    val refreshJson = new JSONObject() {
+      put("messageType", "refresh")
+    }
+    
 	def doWebSocketConnect(request:HttpServletRequest, protocol:String) = {
-	  val slashes = request.getPathInfo().split("/")
-	  val groupBy = URLDecoder.decode(slashes(2))
-	  val filter = slashes(3).split(":").map(URLDecoder.decode(_)).mkString(":")
-	  val design = slashes(4)
-	  val showDisabled = slashes(5)
-	  val view = View.create(groupBy, filter, design, showDisabled)
-      new WatcherWebSocket(view)
+      new WatcherWebSocket()
 	}
 
-	class WatcherWebSocket(view:View) extends WebSocket.OnTextMessage {
+	class WatcherWebSocket() extends WebSocket.OnTextMessage {
 		var connection : Connection = null
-		val watcher = new Watcher {
-		  def view = WatcherWebSocket.this.view
+		var watcher:Option[Watcher] = None
+
+		def onOpen(connection:Connection) {
+		  this.connection = connection;
+		}
+		
+		private def sendInit(view:View, state:Int) {
+          val (ii, currentState) = registry.instances
+          val json = new JSONObject()
+  		  json.put("messageType", "init")
+          json.put("state", currentState)
+          if (state != currentState) {
+            val html = Page.listing(ii, view)
+        	json.put("html", html)
+		  }
+		  connection.sendMessage(json.toString)
+		}
+		
+		private def createWatcher(viewX:View) = new Watcher {
+		  def view = viewX
 		  def notify(text:String) {
 		    if (connection.isOpen()) {
 		      try {
@@ -40,28 +58,33 @@ class WatchWebsocketHandler(registry:Registry) extends WebSocketHandler {
 		  }
 		}
 
-		def onOpen(connection:Connection) {
-		  this.connection = connection;
-		  registry.addWatcher(watcher)
-		  sendFullUpdate()
+		def onMessage(data:String) {
+		  println("data: " + data)
+		  val json = new JSONObject(new JSONTokener(data))
+		  val serverStartId = json.getInt("serverStartId")
+		  if (serverStartId != registry.serverStartId) {
+		    connection.sendMessage(refreshJson.toString)
+		  } else {
+  		    val state = json.getInt("state")
+		    val viewPath = json.getString("path")
+		    val view = createView(viewPath)
+		    watcher = Some(createWatcher(view))
+		    registry.addWatcher(watcher.get)
+		    sendInit(view, state)
+		  }
 		}
 		
-		private def sendFullUpdate() {
-          val (ii, state) = registry.instances
-          val html = Page.listing(ii, view)
-          val json = new JSONObject()
-  		  json.put("messageType", "fullupdate")
-          json.put("state", state)
-          json.put("html", html)
-		  connection.sendMessage(json.toString)
-		}
-
-		def onMessage(data:String) {
-		  sendFullUpdate()
+		private def createView(path:String) = {
+	      val slashes = path.split("/")
+	      val groupBy = URLDecoder.decode(slashes(1))
+	      val filter = slashes(2).split(":").map(URLDecoder.decode(_)).mkString(":")
+	      val design = slashes(3)
+	      val showDisabled = slashes(4)
+	      View.create(groupBy, filter, design, showDisabled)
 		}
 		
 		def onClose(closeCode:Int, message:String) {
-			registry.removeWatcher(watcher)
+			watcher.foreach(registry.removeWatcher(_))
 		}
 	}
 }

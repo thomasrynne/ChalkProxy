@@ -88,7 +88,7 @@ class PageHandler(registry:Registry) extends AbstractHandler {
     val (instances,state) = registry.instances
     val html = Page.listing(instances, view)
     val props = instances.flatMap(_.propNames).toSet.toList.sorted
-    val page = Page.fullPage(registry.name, homePage, html, props, state, view, firebugLite)
+    val page = Page.fullPage(registry.name, homePage, html, props, state, registry.serverStartId, view, firebugLite)
     response.setContentType("text/html")
     response.getWriter.println("<!DOCTYPE html>")
     response.getWriter.println(page)
