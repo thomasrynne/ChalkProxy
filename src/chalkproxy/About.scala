@@ -48,7 +48,7 @@ class About(registry:Registry, properties:ServerProperties) extends AbstractHand
           </div>
           <div class="row-fluid">
             <h2>About</h2>
-            <p><a href="http://github.com/thomas.rynne/ChalkProxy">Chalk Proxy</a> provides a single page to access
+            <p><a href="http://github.com/thomasrynne/ChalkProxy">Chalk Proxy</a> provides a single page to access
                a number of web servers which run on different hosts and ports.</p>
             <p>It is intended for use in a situation where a web based product is being developed and there are
                a number of different test instances running. These can become hard to manage. They often end up
