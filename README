@@ -29,13 +29,5 @@ Running:
  -go to http://localhost:8080
  -see About (http://localhost:8080/About) for more information on registering servers
  -use ./start and ./stop to leave it running
-
-IE & Firefox
- -IE and Firefox auto update support is achieved using a flash plugin which requires access to port 843
- -You need to either
-  -Forward port 8430 to 843 using:
-      sudo socat TCP-LISTEN:843,fork TCP:localhost:8430
-    or
-      iptables -t nat -A PREROUTING -p tcp --dport 843 -j REDIRECT --to-port 8430
-  -Run ChalkProxy as root and specify the flash port (--flash-port 843)
+ 
  

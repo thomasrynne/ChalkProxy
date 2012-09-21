@@ -14,10 +14,6 @@ import org.json.JSONTokener
 
 class WatchWebsocketHandler(registry:Registry) extends WebSocketHandler {
 
-    val refreshJson = new JSONObject() {
-      put("messageType", "refresh")
-    }
-    
 	def doWebSocketConnect(request:HttpServletRequest, protocol:String) = {
       new WatcherWebSocket()
 	}
@@ -44,10 +40,10 @@ class WatchWebsocketHandler(registry:Registry) extends WebSocketHandler {
 		
 		private def createWatcher(viewX:View) = new Watcher {
 		  def view = viewX
-		  def notify(text:String) {
+		  def notify(json:JSONObject) {
 		    if (connection.isOpen()) {
 		      try {
-		        connection.sendMessage(text)
+		        connection.sendMessage(json.toString)
 		      } catch {
 		        case e:Exception => {
 		          println("Failed while sending notification to websocket")
@@ -56,14 +52,14 @@ class WatchWebsocketHandler(registry:Registry) extends WebSocketHandler {
 		      }
 		    }
 		  }
+		  def isActive = connection.isOpen
 		}
 
 		def onMessage(data:String) {
-		  println("data: " + data)
 		  val json = new JSONObject(new JSONTokener(data))
 		  val serverStartId = json.getInt("serverStartId")
 		  if (serverStartId != registry.serverStartId) {
-		    connection.sendMessage(refreshJson.toString)
+		    connection.sendMessage(registry.refreshJson.toString)
 		  } else {
   		    val state = json.getInt("state")
 		    val viewPath = json.getString("path")

@@ -1,7 +1,13 @@
+Add license
+Create distribution
+Colours/Icons in the props area?
 Need whitespace at top and bottom
+Client jar for registrations
+Use scala-json
+Better cache headers for libraries (jquery etc)
+Drop single line registration requirement
 /public folder
 some more icons
 Links for filters
 Show something when there are no instances
-Create single server jar
 Better build/start/stop script

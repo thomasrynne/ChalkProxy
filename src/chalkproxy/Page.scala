@@ -145,8 +145,6 @@ object Page {
         <script src="/assets/jquery-1.7.1.min.js" type="text/javascript"></script>
         <script src="/assets/jquery-ui-1.8.18.custom.min.js" type="text/javascript"></script>
         <script src="/assets/json2.js" type="text/javascript"></script>
-        <script type="text/javascript" src="/assets/swfobject.js"></script>
-        <script type="text/javascript" src="/assets/web_socket.js"></script>
         <script type="text/javascript" charset="utf-8" src="/assets/functions.js"></script>  
     </body>
 </html>

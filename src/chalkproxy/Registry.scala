@@ -6,6 +6,7 @@ import scala.concurrent.SyncVar
 import scala.xml.NodeSeq
 import scala.actors.threadpool.locks.ReentrantReadWriteLock
 import java.net.URLEncoder
+import scala.collection.JavaConversions._
 
 class RegisterSession
 
@@ -77,16 +78,21 @@ object View {
   }
 }
 trait Watcher {
-  def notify(html:String)
+  def notify(html:JSONObject)
   def view:View
+  def isActive:Boolean
 }
-case class ServerProperties(httpPort:Int, registrationPort:Int, flashSocketServerPort:Int, pid:String, pwd:String, started:String)
+case class ServerProperties(httpPort:Int, registrationPort:Int, pid:String, pwd:String, started:String)
 class DuplicateRegistrationException(message:String) extends Exception(message)
 /**
  * Represents the state of the chalk board
  */
 class Registry(val name:String, val defaultView:View) {
 
+  val refreshJson = new JSONObject() {
+    put("messageType", "refresh")
+  }
+  
   val serverStartId = new java.util.Random().nextInt(100000)
   private val readWriteLock = new ReentrantReadWriteLock
   private var stateSequence = 0
@@ -94,7 +100,13 @@ class Registry(val name:String, val defaultView:View) {
   private var closed = Map[String,java.util.Date]()
   private val watchers = new java.util.concurrent.ConcurrentLinkedQueue[Watcher]()
   
-  def watcherCount = watchers.size
+  def watcherCount = {
+    var c = 0
+    for (w <- watchers) {
+      if (w.isActive) c+=1
+    }
+    c
+  }
   
   def lookup(name:String) = {
     read { registerSessions.get(name.toLowerCase()) }
@@ -188,7 +200,7 @@ class Registry(val name:String, val defaultView:View) {
       expired:List[Instance]=Nil) {
     try {
 	  watchers.toArray(Array[Watcher]()).groupBy(_.view).foreach { case (view, w) => {
-	    val json = createJson(enabled, disabled, added, props, expired, view).toString
+	    val json = createJson(enabled, disabled, added, props, expired, view)
 	    w.foreach(_.notify(json))
 	  } }
     } catch {

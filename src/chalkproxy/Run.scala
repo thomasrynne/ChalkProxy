@@ -33,7 +33,6 @@ object Run {
     val options = new Options
     options.addOption("p", "http-port", true, "the http port to listen on (default 8080)")    
     options.addOption("f", "file", true, "read settings from a properties file")
-    options.addOption("s", "flash-port", true, "the port for the flash socket server (default 8430)")
     options.addOption("r", "registation-port", true, "the port for socket registrations (default 4000)")
     options.addOption("d", "demo-mode", true, "run in demo mode with built in servers (" + Demo.modes.mkString(",") + ")")
     options.addOption("n", "name", true, "The name for this instance of ChalkProxy")
@@ -75,7 +74,6 @@ object Run {
       } else {
         writePID()
         val httpPort = Integer.parseInt(properties.getProperty("http-port", "8080"))
-        val flashPort = Integer.parseInt(properties.getProperty("flash-port", "8430"))
         val name = properties.getProperty("name", "Chalk Proxy")
         val registrationPort = Integer.parseInt(properties.getProperty("registration-port", "4000"))
         val groupBy = properties.getProperty("group-by", "None").trim match { case "None" => None; case x => Some(x) }
@@ -97,14 +95,11 @@ object Run {
         try {
 	      val registry = new Registry(name, rootView)
 	      val serverProperties = ServerProperties(
-	          httpPort, registrationPort, flashPort, pid,
+	          httpPort, registrationPort, pid,
 	          new File(".").getAbsolutePath(),
 	          new java.util.Date().toString)
 	      
-	      new SocketRegistrationServer(registry, registrationPort).start()
-	      startWebserver(registry, serverProperties)
-	      startFlashSocketServer(flashPort)
-	      startCleanupTimer(registry)
+	      start(registry, serverProperties)
 	      if (properties.containsKey("demo-mode")) {
 	        Demo.start(registrationPort, properties.getProperty("demo-mode"))
 	        println("Starting in demo mode")
@@ -128,24 +123,30 @@ object Run {
     writer.close()
   }
   
-  private def startCleanupTimer(registry:Registry) {
+  private def startCleanupTimer(registry:Registry, longPollingHandler:LongPollingHandler) {
     val timer = new Timer(true)
 	val ONE_HOUR = 60*60*1000
-	timer.scheduleAtFixedRate(new TimerTask() { def run() { registry.cleanup()} }, ONE_HOUR, ONE_HOUR)
+	val FIVE_MINUTES = 5*60*1000
+	timer.scheduleAtFixedRate(
+	    new TimerTask() { def run() { registry.cleanup()} }, ONE_HOUR, ONE_HOUR)
+	timer.scheduleAtFixedRate(
+	    new TimerTask() { def run() { longPollingHandler.cleanup()} }, FIVE_MINUTES, FIVE_MINUTES)
   }
   
-  private def startFlashSocketServer(port:Int) {
-    new FlashSocketServer(port).start()
-  }
-  
-  private def startWebserver(registry:Registry, properties:ServerProperties) {
+  private def start(registry:Registry, properties:ServerProperties) {
+	
+    new SocketRegistrationServer(registry, properties.registrationPort).start()
+    
+    val longPollingHandler = new LongPollingHandler(registry)
+
+    startCleanupTimer(registry, longPollingHandler)
+
 
     //silence info logs (only needed by the TestServer, but must be set early)
     org.eclipse.jetty.util.log.Log.setLog(new NullLogger())
     
 	val server = new Server(properties.httpPort)
 	val pageHandler = new PageHandler(registry)
-	val partialHandler = new PartialHandler(registry)
 	val listHandler = new ListHandler(registry)
 	val aboutHandler = new About(registry, properties)
 	val proxy = new ProxyHandler(registry)
@@ -160,7 +161,7 @@ object Run {
   		    case "/About" => aboutHandler
   		    case "/all" => pageHandler
   		    case "/list" => listHandler
-		    case _ if (target.startsWith("/partial")) => partialHandler
+  		    case "/poll" => longPollingHandler
 		    case _ if (target.startsWith("/watch")) => watchWebSocketHandler
 		    case _ => if (target.startsWith("/assets")) resourceHandler else proxy
 		  }

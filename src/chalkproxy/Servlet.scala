@@ -5,7 +5,7 @@ import scala.collection.mutable.LinkedList
 import scala.xml.Node
 import org.eclipse.jetty.server.handler.AbstractHandler
 import org.eclipse.jetty.server.Request
-import org.json.JSONObject
+import org.json.{JSONObject, JSONArray}
 
 class ProxyHandler(registry:Registry) extends AbstractHandler {
   override def handle(target:String, request:Request, httpRequest:HttpServletRequest, response:HttpServletResponse) {
@@ -43,23 +43,6 @@ class ProxyHandler(registry:Registry) extends AbstractHandler {
            }
         }
     }
-  }
-}
-
-class PartialHandler(registry:Registry) extends AbstractHandler {
-  override def handle(target:String, request:Request, httpRequest:HttpServletRequest, response:HttpServletResponse) {
-    val browserState = request.getParameter("state").toInt
-    val (instances, state) = registry.instances
-    val json = new JSONObject()
-    if (browserState != state) {
-      val view = View.create(request.getParameter("groupBy"), request.getParameter("filter"), request.getParameter("design"), request.getParameter("showDisconnected"))
-      val html = Page.listing(instances, view)
-      json.put("html", html.toString)
-      json.put("state", state)
-    }
-    response.setContentType("text/json")
-    response.getWriter.println(json.toString)
-    request.setHandled(true)
   }
 }
 

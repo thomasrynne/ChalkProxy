@@ -50,8 +50,7 @@ $(function() {
           ele.stop().animate({height: 0}, {duration: 2000, complete: function(){ele.remove()}})
         })
     }
-    var receiveEvent = function(event) {
-        var data = JSON.parse(event.data)
+    var receiveEvent = function(data) {
         if (data.messageType == "refresh") {
           location.reload(true)
         } else if (data.messageType == "init") {
@@ -77,47 +76,65 @@ $(function() {
          })
       }
     }
-    var reload = function() {
-      $.getJSON('/partial?random='+
-        Math.floor(Math.random()*10000)+'&'+window.PARAMS+'&state='+window.STATE, function(data) {
-          if (data.nonEmpty) {
-            window.STATE = data.state
-            $('#groups').replaceWith(data.html)
-          }
-      })
+
+    //-------------
+
+    var wsHost = window.location.hostname
+    if (window.location.port != "") {
+      wsHost = wsHost + ":" + window.location.port
     }
-    WEB_SOCKET_DEBUG = true
-    window.WEB_SOCKET_SWF_LOCATION = "/assets/WebSocketMain.swf";
-    var hasConnected = false
+
     var reconnectInterval = 1
-    var connect = function() {
-        var wsHost = window.location.hostname
-        if (window.location.port != "") {
-          wsHost = wsHost + ":" + window.location.port
-        }
-        var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket
-        var watchSocket = new WS("ws://"+wsHost+"/watch"+window.PATH)
+    var sessionID = Math.floor(Math.random()*10000)
+    var longPolling = function() {
+      $.ajax({
+		type: "get",
+		url: "http://"+wsHost +"/poll?" + window.PARAMS,
+		dataType: 'text',
+		data: {
+          "serverStartId": window.SERVER_START_ID,
+          "state": window.STATE,
+          "sessionid":sessionID },
+		success: function(data) {
+          var data = JSON.parse(data)
+          jQuery.each(data, function(index, value) {
+            receiveEvent(value)
+          })
+          reconnectInterval = 1
+          longPolling()
+        },
+		error: function (xhr, status, err) {
+          if (status == "timeout") {
+            longPolling()
+          } else {
+            $('#status').html("Disconnected") 
+            reconnectInterval = Math.min(reconnectInterval * 2, 20)
+            setTimeout(longPolling, reconnectInterval);
+          }
+		}
+	  });
+    }
+    var wsConnect = function() {
+        var watchSocket = new WebSocket("ws://"+wsHost+"/watch"+window.PATH)
         reconnectInterval = Math.min(reconnectInterval * 2, 20)
         watchSocket.onclose = function() {
-          //If we get onclose before onopen then the flash websocket plugin is not working
-          var msg = 'Not connected'
-          if (hasConnected) {
-            msg = 'Disconnected'
-            setTimeout(connect, reconnectInterval);
-          }
-          $('#status').html(msg)
-        };
-        watchSocket.onmessage = receiveEvent
+          setTimeout(wsConnect, reconnectInterval);
+          $('#status').html("Disconnected")
+        }
+        watchSocket.onmessage = function(event) { 
+          var data = JSON.parse(event.data)
+          receiveEvent(data)
+        }
         watchSocket.onopen = function() {
-            hasConnected = true
-            reconnectInterval = 1
-            watchSocket.send(JSON.stringify({
-               "serverStartId":window.SERVER_START_ID,
-               "state":window.STATE,
-               "path":window.PATH}))
-        };
+          reconnectInterval = 1
+          watchSocket.send(JSON.stringify({
+            "serverStartId":window.SERVER_START_ID,
+            "state":window.STATE,
+            "path":window.PATH}
+          ))
+        }
     }
     window.onunload = function(){} //fixes firefox back
-    connect()
-    reload()
+    var f = window.WebSocket ? wsConnect : longPolling
+    f()
 })

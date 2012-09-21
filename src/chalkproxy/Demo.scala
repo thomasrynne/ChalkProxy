@@ -82,6 +82,7 @@ class Demo(chalkHostname:String, chalkPort:Int, localHostname:String) {
           Thread.sleep(4000)
         }
       }
+      case "slow-start" => { samples.foreach{ s => s.start; Thread.sleep(5*60*1000) } }
       case "one-busy" => {
         samples.foreach(_.start);
 	    val register = samples(4)

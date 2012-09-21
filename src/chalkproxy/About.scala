@@ -64,10 +64,9 @@ class About(registry:Registry, properties:ServerProperties) extends AbstractHand
               <table>
                 <tr><td>Http port</td><td>{properties.httpPort}</td></tr>
                 <tr><td>Registration port</td><td>{properties.registrationPort}</td></tr>
-                <tr><td>Flash socket server port</td><td>{properties.flashSocketServerPort}</td></tr>
                 <tr><td>PID</td><td>{properties.pid}</td></tr>
                 <tr><td>Pwd</td><td>{properties.pwd}</td></tr>
-                <tr><td>Currently connected pages</td><td>{registry.watcherCount}</td></tr>
+                <tr><td>Currently connected pages (approx)</td><td>{registry.watcherCount}</td></tr>
                 <tr><td>Started</td><td>{properties.started}</td></tr>
               </table>
             </div>  
