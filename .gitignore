@@ -1,5 +1,6 @@
 log
-bin
 out
 pid.txt
 .cache
+chalkproxy.jar
+chalkproxy*.tgz

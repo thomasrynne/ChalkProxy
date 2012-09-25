@@ -21,6 +21,7 @@ import org.eclipse.jetty.servlet.ServletHandler
 import org.eclipse.jetty.server.handler.ResourceHandler
 import java.lang.management.ManagementFactory
 import org.eclipse.jetty.util.log.AbstractLogger
+import com.sun.org.apache.bcel.internal.util.ClassLoader
 
 /**
  * This is the entry point to ChalkProxy.
@@ -151,8 +152,7 @@ object Run {
 	val aboutHandler = new About(registry, properties)
 	val proxy = new ProxyHandler(registry)
     val watchWebSocketHandler:AbstractHandler = new WatchWebsocketHandler(registry)
-    val resourceHandler = new ResourceHandler()
-	resourceHandler.setResourceBase(".")
+    val assetsHandler = new EmbeddedAssetsHandler 
 	
 	server.setHandler(new AbstractHandler() {
 		override def handle(target:String, request:Request, httpRequest:HttpServletRequest, response:HttpServletResponse) {
@@ -163,7 +163,7 @@ object Run {
   		    case "/list" => listHandler
   		    case "/poll" => longPollingHandler
 		    case _ if (target.startsWith("/watch")) => watchWebSocketHandler
-		    case _ => if (target.startsWith("/assets")) resourceHandler else proxy
+		    case _ => if (target.startsWith("/assets")) assetsHandler else proxy
 		  }
 		  handler.handle(target, request, httpRequest, response)
 		}

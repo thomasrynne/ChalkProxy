@@ -1,15 +1,12 @@
 if [ -z $JAVA_HOME ]; then
-  echo "JAVA_HOME must be set"
-  exit 1
-fi
-if [ -z $SCALA_HOME ]; then
-  echo "SCALA_HOME must be set"
-  exit 1
+  JAVAC="javac"
+else
+  JAVAC=$JAVA_HOME/bin/javac
 fi
 ROOT=`dirname $0`
 cd $ROOT
 if [ ! -d "out" ]; then
   mkdir out
 fi
-$SCALA_HOME/bin/scalac -classpath "lib/*" -d out -deprecation -sourcepath src src/chalkproxy/*
-$JAVA_HOME/bin/javac -classpath "lib/*:out" -d out -sourcepath src src/chalkproxy/*.java
+java -Dscala.usejavacp=true -cp scala/scala-library.jar:scala/scala-compiler.jar scala.tools.nsc.Main -classpath "lib/*" -d out -deprecation -sourcepath src src/chalkproxy/*
+$JAVAC -classpath "lib/*:out" -d out -sourcepath src src/chalkproxy/*.java

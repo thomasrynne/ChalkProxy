@@ -1,0 +1,26 @@
+ChalkProxy - manages test web servers
+
+ChalkProxy solves the problem of keeping track of multiple test servers
+which run on different machines and/or ports. 
+
+Each server registers with ChalkProxy so that ChalkProxy can show
+a list of all servers and ChalkProxy proxies for them so that the
+URLs includes a meaningful name for the server you are using.
+
+Features:
+ -Supports IE7+, Chrome & Firefox 
+ -Chalkboard page is self updating (you don't have to keep pressing refresh)
+ -Servers can register arbitrary properties to include in the page
+    (branch/release/user)
+ -programmatic access to all servers is available at /list
+ -/<serverName>/ proxies to the server
+ 
+Requirements:
+ -Java 6+
+ -Linux (although writing a windows start script would probably be easy)
+
+ Running:
+  ./run -d start-stop    to run in demo mode
+  ./run --help           to see options
+  ./start                to run in background
+  ./stop                 to stop

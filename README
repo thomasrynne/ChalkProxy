@@ -16,7 +16,6 @@ Features:
  
 Requirements:
  -Java 6+
- -Scala 2.9+
  -Linux (although writing a windows start script would probably be easy)
  
 Running:

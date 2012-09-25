@@ -1,9 +1,8 @@
 Add license
-Create distribution
 Colours/Icons in the props area?
 Need whitespace at top and bottom
 Client jar for registrations
-Use scala-json
+Use scala-json?
 Better cache headers for libraries (jquery etc)
 Drop single line registration requirement
 /public folder

@@ -1,8 +1,10 @@
+#!/bin/bash
+
 ROOT=`dirname $0`
 if [ -f $ROOT/pid.txt ]
 then
   echo "stopping"
   kill `cat pid.txt`
 else
-  echo "No pid.txt found. Is ChalkProxy proxy running?"
+  echo "No pid.txt found. Is ChalkProxy running?"
 fi

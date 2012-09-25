@@ -1,0 +1,5 @@
+#!/bin/bash
+
+ROOT=`dirname $0`
+cd $ROOT
+java -jar chalkproxy.jar $@

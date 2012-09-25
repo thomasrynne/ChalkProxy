@@ -1,11 +1,13 @@
 package chalkproxy
 
 import javax.servlet.http._
+import java.io.File
 import scala.collection.mutable.LinkedList
 import scala.xml.Node
 import org.eclipse.jetty.server.handler.AbstractHandler
 import org.eclipse.jetty.server.Request
 import org.json.{JSONObject, JSONArray}
+import org.eclipse.jetty.http.HttpHeaders
 
 class ProxyHandler(registry:Registry) extends AbstractHandler {
   override def handle(target:String, request:Request, httpRequest:HttpServletRequest, response:HttpServletResponse) {
@@ -79,3 +81,45 @@ class PageHandler(registry:Registry) extends AbstractHandler {
   }
 }
 
+
+class EmbeddedAssetsHandler extends AbstractHandler {
+  val l = "/assets/".length
+  override def handle(target:String, request:Request, httpRequest:HttpServletRequest, response:HttpServletResponse) {
+    val url = ClassLoader.getSystemResource(request.getPathInfo().substring(l))
+    val extension = request.getPathInfo.substring(request.getPathInfo.lastIndexOf(".")+1)
+    response.setContentType(contentTypeFor(extension))
+    if (url != null) {
+      val connection = url.openConnection()
+      val lastModified = connection.getLastModified()
+      
+      dateHeader(httpRequest, HttpHeaders.IF_MODIFIED_SINCE) match {
+        case Some(d) if (d >= lastModified) => {
+          response.setStatus(304)
+        }
+        case _ => {
+          response.setDateHeader(HttpHeaders.LAST_MODIFIED, lastModified)
+          Utils.copy(connection.getInputStream(), response.getOutputStream())
+        }
+      }
+    }
+    request.setHandled(true)
+  }
+  
+  def dateHeader(httpRequest:HttpServletRequest, name:String) = {
+    try {
+      val r = httpRequest.getDateHeader(name)
+      if (r == -1) None else Some(r)
+    } catch {
+      case e:IllegalStateException => None
+    }
+  }
+  
+  private def contentTypeFor(extension:String) = {
+    extension match {
+      case "js" => "text/javascript"
+      case "css" => "text/css"
+      case "jpg" => "image/jpeg"
+      case "png" => "image/png"
+    }
+  }
+}
