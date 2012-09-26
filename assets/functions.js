@@ -19,6 +19,7 @@ $(function() {
           animate(ele.children('.props'), 0.4)
         })
     }
+
     var add = function(adds) {
         jQuery.each(adds, function(index, value) {
           var existing = $('#'+value.key)
@@ -54,8 +55,8 @@ $(function() {
         if (data.messageType == "refresh") {
           location.reload(true)
         } else if (data.messageType == "init") {
-          $('#status').html('Connected')
-          if (window.STATE != data.state) {
+          $('#status').html('Connected.')
+          if (window.STATE !== data.state) {
             group.replaceWith($(data.html))
           }
           window.STATE = data.state
@@ -91,6 +92,7 @@ $(function() {
 		type: "get",
 		url: "http://"+wsHost +"/poll?" + window.PARAMS,
 		dataType: 'text',
+        cache: false,
 		data: {
           "serverStartId": window.SERVER_START_ID,
           "state": window.STATE,
@@ -107,7 +109,7 @@ $(function() {
           if (status == "timeout") {
             longPolling()
           } else {
-            $('#status').html("Disconnected") 
+            $('#status').html("Disconnected.") 
             reconnectInterval = Math.min(reconnectInterval * 2, 20)
             setTimeout(longPolling, reconnectInterval);
           }
