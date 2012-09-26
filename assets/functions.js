@@ -55,7 +55,7 @@ $(function() {
         if (data.messageType == "refresh") {
           location.reload(true)
         } else if (data.messageType == "init") {
-          $('#status').html('Connected.')
+          $('#status').html('Connected')
           if (window.STATE !== data.state) {
             group.replaceWith($(data.html))
           }
@@ -111,7 +111,7 @@ $(function() {
           } else {
             $('#status').html("Disconnected.") 
             reconnectInterval = Math.min(reconnectInterval * 2, 20)
-            setTimeout(longPolling, reconnectInterval);
+            setTimeout(longPolling, reconnectInterval*1000);
           }
 		}
 	  });
@@ -120,7 +120,7 @@ $(function() {
         var watchSocket = new WebSocket("ws://"+wsHost+"/watch"+window.PATH)
         reconnectInterval = Math.min(reconnectInterval * 2, 20)
         watchSocket.onclose = function() {
-          setTimeout(wsConnect, reconnectInterval);
+          setTimeout(wsConnect, reconnectInterval*1000);
           $('#status').html("Disconnected")
         }
         watchSocket.onmessage = function(event) { 
