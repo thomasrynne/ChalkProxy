@@ -7,6 +7,7 @@ import org.eclipse.jetty.server.handler.AbstractHandler
 import org.eclipse.jetty.server.Request
 import org.json.{JSONObject, JSONArray}
 import scala.collection.JavaConversions._
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 
@@ -26,10 +27,17 @@ class PollSessions(registry:Registry) {
       lastUsed.set(System.currentTimeMillis())
       inUse.set(true)
       try {
-	      val first = queue.take()
+	    val first = queue.poll(30, TimeUnit.SECONDS)
+	    if (first == null) {
+	      //I can't see a way to detect when the browers has givenup
+	      //so to prevent threads hanging around timeout and return nothing
+	      //if the browser is still active it will re-poll
+	      Nil
+	    } else {
 	      val rest = new java.util.LinkedList[JSONObject]()
 	      queue.drainTo(rest)
 	      first :: rest.toList
+	    }
       } finally {
         inUse.set(false)
       }
