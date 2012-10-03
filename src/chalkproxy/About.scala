@@ -17,8 +17,8 @@ class About(registry:Registry, properties:ServerProperties) extends AbstractHand
   def page = <html>
     <head>
         <title>{title} : About</title>
-        <link rel="stylesheet" media="screen" href="/assets/bootstrap.css"/>
-        <link rel="stylesheet" media="screen" href="/assets/main.css"/>
+        <link rel="stylesheet" media="screen" href="/assets/bootstrap-2.0.2.css"/>
+        <link rel="stylesheet" media="screen" href={registry.page.assetsHandler.url("/assets/main.css")}/>
         <link rel="shortcut icon" type="image/png" href="/assets/favicon.png"/>
         <style>{"""
          table, td {
