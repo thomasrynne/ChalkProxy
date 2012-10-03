@@ -2,6 +2,7 @@ package chalkproxy
 
 import javax.servlet.http._
 import java.io.File
+import java.net.URLConnection
 import scala.collection.mutable.LinkedList
 import scala.xml.Node
 import org.eclipse.jetty.server.handler.AbstractHandler
@@ -60,7 +61,7 @@ class ListHandler(registry:Registry) extends AbstractHandler {
   }
 }
 
-class PageHandler(registry:Registry) extends AbstractHandler {
+class PageHandler(registry:Registry, assets:EmbeddedAssetsHandler) extends AbstractHandler {
   override def handle(target:String, request:Request, httpRequest:HttpServletRequest, response:HttpServletResponse) {
     val (homePage, view) =
       if (request.getParameter("groupBy") == null && request.getParameter("filter")==null) {
@@ -71,38 +72,95 @@ class PageHandler(registry:Registry) extends AbstractHandler {
       }
     val firebugLite = request.getParameter("debug") == "firebuglite"
     val (instances,state) = registry.instances
-    val html = Page.listing(instances, view)
+    val html = registry.page.listing(instances, view)
     val props = instances.flatMap(_.propNames).toSet.toList.sorted
-    val page = Page.fullPage(registry.name, homePage, html, props, state, registry.serverStartId, view, firebugLite)
+    val page = registry.page.fullPage(registry.name, homePage, html, props, state, registry.serverStartId, view, firebugLite)
     response.setContentType("text/html")
+    response.setHeader("Cache-control", "no-cache")
     response.getWriter.println("<!DOCTYPE html>")
     response.getWriter.println(page)
     request.setHandled(true)
   }
 }
 
-
 class EmbeddedAssetsHandler extends AbstractHandler {
-  val l = "/assets/".length
+  private val ONE_YEAR = 365L*24*60*60*1000
+  private val l = "/assets/".length
+  private val hashesCache = new java.util.concurrent.ConcurrentHashMap[String,(Long,String)]()
+  def url(fullUrl:String) = {
+    val name = fullUrl.substring(l)
+    buildHash(name) match {
+      case Left(msg) => throw new Exception("There is no asset " + name)
+      case Right(hash) => "/assets/hash-" + hash + "-" + name
+    }
+    
+  }
+  
+  def buildHash(name:String) = {
+    readResource(name) match {
+      case Left(msg) => Left(msg)
+      case Right(connection) => Right(hashFor(name, connection))
+    }
+  }
   override def handle(target:String, request:Request, httpRequest:HttpServletRequest, response:HttpServletResponse) {
-    val url = ClassLoader.getSystemResource(request.getPathInfo().substring(l))
-    val extension = request.getPathInfo.substring(request.getPathInfo.lastIndexOf(".")+1)
-    response.setContentType(contentTypeFor(extension))
-    if (url != null) {
-      val connection = url.openConnection()
-      val lastModified = connection.getLastModified()
-      
-      dateHeader(httpRequest, HttpHeaders.IF_MODIFIED_SINCE) match {
-        case Some(d) if (d >= lastModified) => {
-          response.setStatus(304)
-        }
-        case _ => {
-          response.setDateHeader(HttpHeaders.LAST_MODIFIED, lastModified)
-          Utils.copy(connection.getInputStream(), response.getOutputStream())
+    val name = request.getPathInfo().substring(l)
+    readName(name) match {
+      case Left(msg) => {
+        response.setStatus(404, msg)
+        request.setHandled(true)
+      }
+      case Right(connection) => {
+        writeIfNeeded(name, connection, request, response)
+        request.setHandled(true)
+      }
+      case _ =>
+    }
+  }
+    
+  private def writeIfNeeded(name:String, connection:URLConnection, request:HttpServletRequest, response:HttpServletResponse) {
+    if (request.getHeader(HttpHeaders.IF_MODIFIED_SINCE) != null) {
+      //on a forced refresh the browser asks again, there's no need to check the last modified as these never change
+	  response.setStatus(304)
+      response.setHeader("Cache-control", "public, max-age=31536000")
+      response.setDateHeader("Expires", System.currentTimeMillis() + ONE_YEAR)
+    } else {
+	  val lastModified = connection.getLastModified()
+      response.setHeader("Cache-control", "public, max-age=31536000")
+      response.setDateHeader("Expires", System.currentTimeMillis() + ONE_YEAR)
+      response.setContentType(contentTypeFor(name))
+	  response.setDateHeader(HttpHeaders.LAST_MODIFIED, lastModified)
+	  Utils.copy(connection.getInputStream(), response.getOutputStream())
+    }
+  }
+  
+  def readName(name:String) = {
+    if (name.startsWith("hash-")) {
+      val hash = name.substring(5, 21)
+      val realName = name.substring(22)
+      buildHash(realName) match {
+        case Left(msg) => Left(msg)
+        case Right(generatedHash) => {
+          if (generatedHash == hash) {
+            readResource(realName)
+          } else {
+            Left("file has changed since hash was generated")
+          }
         }
       }
+    } else if (isVersioned(name)) {
+      readResource(name)
+    } else {
+      Left("Not a hash url and not versioned")
     }
-    request.setHandled(true)
+  }
+  
+  def readResource(name:String) = {
+	val url = ClassLoader.getSystemResource(name)
+    if (url != null) {
+      Right(url.openConnection())
+    } else {
+      Left(name + " not found")
+    }
   }
   
   def dateHeader(httpRequest:HttpServletRequest, name:String) = {
@@ -114,7 +172,14 @@ class EmbeddedAssetsHandler extends AbstractHandler {
     }
   }
   
-  private def contentTypeFor(extension:String) = {
+  def isVersioned(name:String) = {
+    val numbers = name.filter(_.isDigit).size
+    val dots = name.filter(_ == '.').size
+    numbers > 1 && dots > 1
+  }
+  
+  private def contentTypeFor(name:String) = {
+    val extension = name.substring(name.lastIndexOf(".")+1)
     extension match {
       case "js" => "text/javascript"
       case "css" => "text/css"
@@ -122,4 +187,16 @@ class EmbeddedAssetsHandler extends AbstractHandler {
       case "png" => "image/png"
     }
   }
+  
+  def hashFor(name:String, connection:URLConnection):String = {
+    val result = hashesCache.get(name)
+    val lastModified = connection.getLastModified()
+    if (result != null && result._1 == lastModified) {
+      result._2
+    } else {
+      val h = Utils.calculateHash(connection.getInputStream()).substring(0, 16)
+      hashesCache.put(name, (lastModified, h))
+      h
+    }
+  }  
 }

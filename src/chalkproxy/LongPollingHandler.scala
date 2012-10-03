@@ -58,7 +58,7 @@ class PollSessions(registry:Registry) {
   	  json.put("messageType", "init")
       json.put("state", currentState)
       if (state != currentState) {
-        val html = Page.listing(ii, view)
+        val html = registry.page.listing(ii, view)
         json.put("html", html)
       }
       List(json)
@@ -82,6 +82,7 @@ class LongPollingHandler(registry:Registry) extends AbstractHandler {
       new JSONArray(updates.toArray)
     }
     response.setContentType("text/json")
+    response.setHeader("Cache-control", "no-cache")
     response.getWriter.println(json)
     request.setHandled(true)
   }

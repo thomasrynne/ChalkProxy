@@ -6,7 +6,7 @@ case class Group(name:Option[String], instances:List[InstanceSnapshot])
 /**
  * Holds all the html page generation code
  */
-object Page {
+class Page(val assetsHandler:EmbeddedAssetsHandler) {
   def groups(instances:List[InstanceSnapshot], view:View) = {
     def sortAndFilter(instances:List[InstanceSnapshot]) = {
      instances.sortBy(_.instance.key).filter { instance => {
@@ -45,16 +45,26 @@ object Page {
     <div class="row-fluid group" id={groupId(groupName)}><h2>{groupName}</h2></div>
   }
   
+  private def addAssetsPrefix(instance:Instance, url:String) = {
+    if (url.startsWith("/")) {
+      assetsHandler.url(url) 
+    } else if (url.contains("://")) {
+      url
+    } else {
+      "/" + instance.prefix + "/" + url
+    }
+  }
+  
   private def addPrefix(instance:Instance, url:String) = {
-    if (url.startsWith("/") || url.contains("://")) url else "/" + instance.prefix + "/" + url
+    if (url.contains("://")) url else instance.prefix + url
   }
   
   def iconHtml(instance:Instance, icon:Icon) = {
-    <a class="icon" href={instance.key + icon.url}>{
+    <a class="icon" href={addPrefix(instance, icon.url)}>{
       if (icon.image == "") {
         icon.text
       } else {
-        <img class="iconimage" src={addPrefix(instance, icon.image)} alt={icon.text}/>
+        <img class="iconimage" src={addAssetsPrefix(instance, icon.image)} alt={icon.text}/>
       }
     }</a>
   }
@@ -107,8 +117,8 @@ object Page {
 <html>
     <head>
         <title>{title}</title>
-        <link rel="stylesheet" media="screen" href="/assets/bootstrap.css"/>
-        <link rel="stylesheet" media="screen" href="/assets/main.css"/>
+        <link rel="stylesheet" media="screen" href="/assets/bootstrap-2.0.2.css"/>
+        <link rel="stylesheet" media="screen" href={assetsHandler.url("/assets/main.css")}/>
         <link rel="shortcut icon" type="image/png" href="/assets/favicon.png"/>
         { if (firebugLite) <script type="text/javascript" src="https://getfirebug.com/firebug-lite-debug.js"></script> else NodeSeq.Empty }
         <style>{if (view.showDisconnected)"""
@@ -137,15 +147,14 @@ object Page {
         <script type="text/javascript">
           window.SERVER_START_ID = {serverStartId}
           window.STATE = {state};
-          window.WEB_SOCKET_SWF_LOCATION = '/assets/WebSocketMain.swf';
           window.PARAMS = '{view.params}'
           window.PATH = '{view.asPath}'
           window.SHOW_DISCONNECTED={view.showDisconnected}
         </script>
         <script src="/assets/jquery-1.7.1.min.js" type="text/javascript"></script>
         <script src="/assets/jquery-ui-1.8.18.custom.min.js" type="text/javascript"></script>
-        <script src="/assets/json2.js" type="text/javascript"></script>
-        <script type="text/javascript" charset="utf-8" src="/assets/functions.js"></script>  
+        <script src="/assets/json-2.0.js" type="text/javascript"></script>
+        <script type="text/javascript" charset="utf-8" src={assetsHandler.url("/assets/functions.js")}></script>  
     </body>
 </html>
   }

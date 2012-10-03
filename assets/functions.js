@@ -53,7 +53,7 @@ $(function() {
     }
     var receiveEvent = function(data) {
         if (data.messageType == "refresh") {
-          location.reload(true)
+          location.reload(false)
         } else if (data.messageType == "init") {
           $('#status').html('Connected')
           if (window.STATE !== data.state) {

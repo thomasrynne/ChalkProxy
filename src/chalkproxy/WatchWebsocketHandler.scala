@@ -32,7 +32,7 @@ class WatchWebsocketHandler(registry:Registry) extends WebSocketHandler {
   		  json.put("messageType", "init")
           json.put("state", currentState)
           if (state != currentState) {
-            val html = Page.listing(ii, view)
+            val html = registry.page.listing(ii, view)
         	json.put("html", html)
 		  }
 		  connection.sendMessage(json.toString)

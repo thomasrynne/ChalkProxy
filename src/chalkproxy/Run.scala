@@ -94,7 +94,9 @@ object Run {
         println("Running ChalkProxy")
         println("Default view: group by: " + rootView.groupBy + " filter: " + rootView.filter.getOrElse("None"))
         try {
-	      val registry = new Registry(name, rootView)
+          val assetsHandler = new EmbeddedAssetsHandler 
+          val page = new Page(assetsHandler)
+	      val registry = new Registry(name, page, rootView)
 	      val serverProperties = ServerProperties(
 	          httpPort, registrationPort, pid,
 	          new File(".").getAbsolutePath(),
@@ -147,12 +149,12 @@ object Run {
     org.eclipse.jetty.util.log.Log.setLog(new NullLogger())
     
 	val server = new Server(properties.httpPort)
-	val pageHandler = new PageHandler(registry)
+    val assetsHandler = registry.page.assetsHandler	
+	val pageHandler = new PageHandler(registry, assetsHandler)
 	val listHandler = new ListHandler(registry)
 	val aboutHandler = new About(registry, properties)
 	val proxy = new ProxyHandler(registry)
     val watchWebSocketHandler:AbstractHandler = new WatchWebsocketHandler(registry)
-    val assetsHandler = new EmbeddedAssetsHandler 
 	
 	server.setHandler(new AbstractHandler() {
 		override def handle(target:String, request:Request, httpRequest:HttpServletRequest, response:HttpServletResponse) {

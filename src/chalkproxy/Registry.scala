@@ -87,7 +87,7 @@ class DuplicateRegistrationException(message:String) extends Exception(message)
 /**
  * Represents the state of the chalk board
  */
-class Registry(val name:String, val defaultView:View) {
+class Registry(val name:String, val page:Page, val defaultView:View) {
 
   val refreshJson = new JSONObject() {
     put("messageType", "refresh")
@@ -227,17 +227,17 @@ class Registry(val name:String, val defaultView:View) {
           val group = (instances.size > 1, name) match {
             case (true, _) | (_,None) => Nil
             case (_, Some(v))  => {
-              val after = if (groupIndex == 0) "" else Page.groupId(groups(groupIndex-1).name.get)
-              List(createJson(Page.groupId(v), after, Page.groupHtml(v)))
+              val after = if (groupIndex == 0) "" else page.groupId(groups(groupIndex-1).name.get)
+              List(createJson(page.groupId(v), after, page.groupHtml(v)))
             }
           } 
           val ins = {
             val after = if (position > 0) {
-              Page.instanceId(instances(position-1).instance.key)
+              page.instanceId(instances(position-1).instance.key)
             } else {
-              name.map(v=>Page.groupId(v)).getOrElse("")
+              name.map(v=>page.groupId(v)).getOrElse("")
             }
-            createJson(Page.instanceId(key), after, Page.instanceHtml(instanceSnapshot))
+            createJson(page.instanceId(key), after, page.instanceHtml(instanceSnapshot))
           }
           group ::: List(ins)
         }
@@ -247,20 +247,20 @@ class Registry(val name:String, val defaultView:View) {
   
   private def createPropsJson(instance:Instance, prop:Prop) = {
     val json = new JSONObject()
-    json.put("key", Page.propId(instance.key, prop.name))
-    json.put("html", Page.propHtml(instance, prop))
+    json.put("key", page.propId(instance.key, prop.name))
+    json.put("html", page.propHtml(instance, prop))
     json
   }
   
   private def calculateRemoves(groups:List[Group], view:View, instance:Instance) = {
     view.groupBy match {
-      case None => List(Page.instanceId(instance.key))
+      case None => List(page.instanceId(instance.key))
       case Some(g) => {
         val groupValue = Some(instance.valueFor(g))
         if (!groups.exists(_.name == groupValue)) {
-          List(Page.groupId(groupValue.get), Page.instanceId(instance.key)) //the group no longer exists
+          List(page.groupId(groupValue.get), page.instanceId(instance.key)) //the group no longer exists
         } else {
-          List(Page.instanceId(instance.key))
+          List(page.instanceId(instance.key))
         }
       }
     }
@@ -269,14 +269,14 @@ class Registry(val name:String, val defaultView:View) {
   private def createJson(enabled:List[String], disabled:List[Instance], added:List[String], props:List[(Instance,Prop)], expired:List[Instance], view:View) = {
     import scala.collection.JavaConversions
     val (ii, state) = instances
-    val groups = Page.groups(ii, view)
+    val groups = page.groups(ii, view)
     val (addActions,enableActions) = if (view.showDisconnected) (added,enabled) else (added:::enabled,Nil) 
     val (removeActions,disableActions) = if (view.showDisconnected) (expired,disabled) else (expired:::disabled,Nil) 
     val json = new JSONObject()
     json.put("messageType", "partial")
     json.put("state", state)
-    json.put("enable", new JSONArray(JavaConversions.asJavaCollection(enableActions.map(Page.instanceId))))
-    json.put("disable", new JSONArray(JavaConversions.asJavaCollection(disableActions.map(i=>Page.instanceId(i.key)))))
+    json.put("enable", new JSONArray(JavaConversions.asJavaCollection(enableActions.map(page.instanceId))))
+    json.put("disable", new JSONArray(JavaConversions.asJavaCollection(disableActions.map(i=>page.instanceId(i.key)))))
     json.put("add", new JSONArray(JavaConversions.asJavaCollection(addActions.flatMap { key => {
       createInstanceJson(groups, key, view)
     } })))

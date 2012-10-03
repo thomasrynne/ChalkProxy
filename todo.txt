@@ -1,9 +1,9 @@
 Add license
+Don't block readers while updating watchers after an update
 Colours/Icons in the props area?
 Need whitespace at top and bottom
 Client jar for registrations
 Use scala-json?
-Better cache headers for libraries (jquery etc)
 Drop single line registration requirement
 /public folder
 some more icons
