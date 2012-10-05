@@ -56,7 +56,7 @@ public class DoForward {
         _DontProxyHeaders.add("upgrade");
     }
     
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "deprecation" })
     public void forward(
     		ServletRequest req,
     		ServletResponse res,
@@ -191,7 +191,7 @@ public class DoForward {
                 proxy_in = http.getErrorStream();
                 
                 code=http.getResponseCode();
-                response.sendError(code,http.getResponseMessage());
+                response.setStatus(code,http.getResponseMessage());
             }
             
             if (proxy_in==null)
