@@ -28,7 +28,8 @@ object Demo {
 }
 class Demo(chalkHostname:String, chalkPort:Int, localHostname:String) {
   
-  class SampleServer(port:Int, name:String, group:String) {
+  class SampleServer(port:Int, name:String, group:String, index:Int) {
+    val longName = if (index==3) "gjfdkgjfkdgjrk " * 10 else "short"
     val props = List(
           ChalkProperty("branch", if ((name.hashCode % 2) == 1) "master" else "release-1.0", Some("http://git/branches/master")),
           ChalkProperty("commit", "fjfiwj5osj32"),
@@ -36,6 +37,7 @@ class Demo(chalkHostname:String, chalkPort:Int, localHostname:String) {
           ChalkProperty("&b=1", "url escaping test"),
           ChalkProperty("started", "20Apr2012 14:54"),
           ChalkProperty("Status", "starting"),
+          ChalkProperty("Long", longName),
           ChalkProperty("headers", "here", Some("headers")),
           ChalkProperty("pwd", "/home/thomas/code/server/main"), 
           ChalkProperty("user", "t intentional spaces"),
@@ -43,7 +45,8 @@ class Demo(chalkHostname:String, chalkPort:Int, localHostname:String) {
           ChalkProperty("pid", "2543"))
     val chalkProxy = new ChalkProxy(
           chalkHostname, chalkPort, localHostname, port, name, group,
-          ChalkIcon("Launch 2", "/assets/blowfish.png", "/go.jnlp") :: 
+          ChalkIcon("Launch 2", "/assets/blowfish.png", "/go.jnlp") ::
+          ChalkIcon("ws", "/assets/blowfish.png", "/go.jnlp") ::
           ChalkIcon("ws", "/assets/blowfish.png", "/go.jnlp") :: 
           ChalkIcon("p", "", "/go.jnlp") :: Nil,
           props
@@ -65,7 +68,7 @@ class Demo(chalkHostname:String, chalkPort:Int, localHostname:String) {
   val foo = List("UAT" -> List("Red u@ thomas roo", "House u also quite long"), "Prod" -> List("James p", "Cloud p"), "Dev" -> List("D1", "D9"))
   val baseServerPort = 5000
   val samples = foo.flatMap { case (group, names) => { names.map { name => (name,group) } } }.zipWithIndex.map { case ((name,group), index) => {
-    new SampleServer(baseServerPort+index, name, group)
+    new SampleServer(baseServerPort+index, name, group, index)
   } }.toArray
   val colors = Array("Red", "Amber", "Green")
   val random = new java.util.Random(0)

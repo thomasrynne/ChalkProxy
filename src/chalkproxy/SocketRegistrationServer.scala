@@ -30,7 +30,11 @@ class SocketRegistrationServer(registry:Registry, port:Int) {
                           Executors.newCachedThreadPool()));
   bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
     override def getPipeline() = {
-      Channels.pipeline(new StringDecoder(), new StringEncoder(), new NettyRegistrationHandler)
+      Channels.pipeline(
+        new DelimiterBasedFrameDecoder(10000, Delimiters.lineDelimiter() :_*),
+        new StringDecoder(),
+        new StringEncoder(),
+        new NettyRegistrationHandler)
     }
   })
   //bootstrap.setOption("child.keepAlive", true);
@@ -44,8 +48,8 @@ class SocketRegistrationServer(registry:Registry, port:Int) {
     var registered:Option[Instance] = None
     override def messageReceived(ctx:ChannelHandlerContext, e:MessageEvent) {
       val message = e.getMessage().asInstanceOf[String]
-      val json = new JSONObject(new JSONTokener(message))
       try {
+        val json = new JSONObject(new JSONTokener(message))
         registered match {
           case None => {
 	        val instance = JsonInstance.createInstance(json)
