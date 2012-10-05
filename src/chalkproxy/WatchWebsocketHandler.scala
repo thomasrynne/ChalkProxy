@@ -72,8 +72,8 @@ class WatchWebsocketHandler(registry:Registry) extends WebSocketHandler {
 		
 		private def createView(path:String) = {
 	      val slashes = path.split("/")
-	      val groupBy = URLDecoder.decode(slashes(1))
-	      val filter = slashes(2).split(":").map(URLDecoder.decode(_)).mkString(":")
+	      val groupBy = URLDecoder.decode(slashes(1), "UTF8")
+	      val filter = slashes(2).split(":").map(URLDecoder.decode(_, "UTF8")).mkString(":")
 	      val design = slashes(3)
 	      val showDisabled = slashes(4)
 	      View.create(groupBy, filter, design, showDisabled)

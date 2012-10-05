@@ -106,7 +106,7 @@ class EmbeddedAssetsHandler extends AbstractHandler {
     val name = request.getPathInfo().substring(l)
     readName(name) match {
       case Left(msg) => {
-        response.setStatus(404, msg)
+        response.sendError(404,msg)
         request.setHandled(true)
       }
       case Right(connection) => {

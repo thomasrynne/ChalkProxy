@@ -47,16 +47,16 @@ case class View(groupBy:Option[String], filter:Option[List[String]], showLinks:B
   def href = "/?"+ params
   def params = {
     (
-      List("groupBy="+URLEncoder.encode(groupBy.getOrElse("None"))) ::: filter.map(v => "filter="+v).toList :::
+      List("groupBy="+URLEncoder.encode(groupBy.getOrElse("None"), "UTF8")) ::: filter.map(v => "filter="+v).toList :::
       (if(showDisconnected) List("showDisconnected=true") else Nil) :::
       (if(showLinks) List("design=show") else Nil)
     ).mkString("&")
   }
   def asPath = {
-    "/"+URLEncoder.encode(groupBy.getOrElse("None")) + "/" + {
+    "/"+URLEncoder.encode(groupBy.getOrElse("None"), "UTF8") + "/" + {
       filter match {
         case None => "All"
-        case Some(values) => values.map(URLEncoder.encode(_)).mkString(":")
+        case Some(values) => values.map(URLEncoder.encode(_, "UTF8")).mkString(":")
       }
     } + "/" + (if(showLinks) "Show" else "Hide") + "/" + (if (showDisconnected) "true" else "false")
   }

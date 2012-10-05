@@ -43,7 +43,7 @@ public class DoForward {
 	
 	public DoForward() {}
 	
-    protected HashSet  _DontProxyHeaders = new HashSet ();
+    protected HashSet<String>  _DontProxyHeaders = new HashSet<String>();
     {
         _DontProxyHeaders.add("proxy-connection");
         _DontProxyHeaders.add("connection");
@@ -56,6 +56,7 @@ public class DoForward {
         _DontProxyHeaders.add("upgrade");
     }
     
+    @SuppressWarnings("unchecked")
     public void forward(
     		ServletRequest req,
     		ServletResponse res,
@@ -114,11 +115,11 @@ public class DoForward {
             // copy headers
             boolean xForwardedFor=false;
             boolean hasContent=false;
-            Enumeration  enm = request.getHeaderNames();
+            Enumeration<String>  enm = request.getHeaderNames();
             while (enm.hasMoreElements())
             {
                 // TODO could be better than this!
-            	String  hdr=(String )enm.nextElement();
+            	String  hdr=enm.nextElement();
                 String  lhdr=hdr.toLowerCase();
 
                 if (_DontProxyHeaders.contains(lhdr))
@@ -129,10 +130,10 @@ public class DoForward {
                 if ("content-type".equals(lhdr))
                     hasContent=true;
 
-                Enumeration  vals = request.getHeaders(hdr);
+				Enumeration<String>  vals = request.getHeaders(hdr);
                 while (vals.hasMoreElements())
                 {
-                    String  val = (String )vals.nextElement();
+                    String  val = vals.nextElement();
                     if (val!=null)
                     {
                         connection.addRequestProperty(hdr,val);
@@ -190,7 +191,7 @@ public class DoForward {
                 proxy_in = http.getErrorStream();
                 
                 code=http.getResponseCode();
-                response.setStatus(code,http.getResponseMessage());
+                response.sendError(code,http.getResponseMessage());
             }
             
             if (proxy_in==null)

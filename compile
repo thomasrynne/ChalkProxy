@@ -9,4 +9,4 @@ if [ ! -d "out" ]; then
   mkdir out
 fi
 java -Dscala.usejavacp=true -cp distribution-jars/scala-library.jar:distribution-jars/scala-compiler.jar scala.tools.nsc.Main -classpath "lib/*:distribution-jars/commons-compress-1.4.1.jar" -d out -deprecation -sourcepath src src/chalkproxy/*
-$JAVAC -classpath "lib/*:out" -d out -sourcepath src src/chalkproxy/*.java
+$JAVAC -Xlint:deprecation -Xlint:unchecked  -classpath "lib/*:out" -d out -sourcepath src src/chalkproxy/*.java
