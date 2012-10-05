@@ -24,3 +24,7 @@ Requirements:
   ./run --help           to see options
   ./start                to run in background
   ./stop                 to stop
+  
+  License:
+   GPLv3     See http://www.gnu.org/copyleft/gpl.html
+   
