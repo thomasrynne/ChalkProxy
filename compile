@@ -8,5 +8,5 @@ cd $ROOT
 if [ ! -d "out" ]; then
   mkdir out
 fi
-java -Dscala.usejavacp=true -cp scala/scala-library.jar:scala/scala-compiler.jar scala.tools.nsc.Main -classpath "lib/*" -d out -deprecation -sourcepath src src/chalkproxy/*
+java -Dscala.usejavacp=true -cp distribution-jars/scala-library.jar:distribution-jars/scala-compiler.jar scala.tools.nsc.Main -classpath "lib/*:distribution-jars/commons-compress-1.4.1.jar" -d out -deprecation -sourcepath src src/chalkproxy/*
 $JAVAC -classpath "lib/*:out" -d out -sourcepath src src/chalkproxy/*.java
