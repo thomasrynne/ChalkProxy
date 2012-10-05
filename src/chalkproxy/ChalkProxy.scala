@@ -18,9 +18,6 @@
 package chalkproxy
 
 import java.net.URI
-import de.roderick.weberknecht.WebSocketConnection
-import de.roderick.weberknecht.WebSocketEventHandler
-import de.roderick.weberknecht.WebSocketMessage
 import org.json.JSONObject
 import org.json.JSONArray
 import scala.collection.JavaConversions

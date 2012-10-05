@@ -5,7 +5,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/servlet-api-2.5-6.1.9.jar"/>
 	<classpathentry kind="lib" path="lib/httpclient.jar"/>
-	<classpathentry kind="lib" path="lib/noodle-2.2.0.jar"/>
 	<classpathentry kind="lib" path="lib/commons-cli-1.1.jar"/>
 	<classpathentry kind="lib" path="lib/jetty-continuation-7.6.2.v20120308.jar"/>
 	<classpathentry kind="lib" path="lib/jetty-http-7.6.2.v20120308.jar"/>
@@ -17,7 +16,6 @@
 	<classpathentry kind="lib" path="lib/jetty-servlets-7.6.2.v20120308.jar"/>
 	<classpathentry kind="lib" path="lib/jetty-security-7.6.2.v20120308.jar"/>
 	<classpathentry kind="lib" path="lib/json.jar"/>
-	<classpathentry kind="lib" path="lib/weberknecht-0.1.1.jar"/>
 	<classpathentry kind="lib" path="lib/netty-3.3.1.Final.jar"/>
 	<classpathentry kind="lib" path="distribution-jars/commons-compress-1.4.1.jar"/>
 	<classpathentry kind="lib" path="assets"/>
