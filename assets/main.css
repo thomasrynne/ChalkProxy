@@ -6,6 +6,7 @@ body {
   max-width: 1000px; /*limit the width on large screens */
   margin-left: auto; /* center */
   margin-right: auto; /* center */
+  margin-bottom: 4em; /*add some whitespace at the bottom */
 }
 .title {
   margin-bottom: 0.5em;
