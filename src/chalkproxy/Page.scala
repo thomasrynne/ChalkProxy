@@ -165,7 +165,7 @@ class Page(val assetsHandler:EmbeddedAssetsHandler) {
         <script type="text/javascript">
           window.SERVER_START_ID = {serverStartId}
           window.STATE = {state};
-          window.PARAMS = '{view.params}'
+          window.PARAMS = '{scala.xml.Unparsed(view.params)}'
           window.PATH = '{view.asPath}'
           window.SHOW_DISCONNECTED={view.showDisconnected}
         </script>
