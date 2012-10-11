@@ -30,7 +30,6 @@ import java.net.URLConnection;
 import java.util.Enumeration;
 import java.util.HashSet;
 
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;

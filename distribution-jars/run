@@ -2,4 +2,4 @@
 
 ROOT=`dirname $0`
 cd $ROOT
-java -jar chalkproxy.jar $@
+java -jar chalkproxy-server.jar $@

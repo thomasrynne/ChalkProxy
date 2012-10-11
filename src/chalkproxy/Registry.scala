@@ -28,9 +28,9 @@ import scala.collection.JavaConversions._
 class RegisterSession
 
 /* Case classes which form part of the api to Registry */
-case class Icon(text:String, image:String, url:String)
+case class Icon(url:String, text:String, image:Option[String])
 case class Prop(name:String, value:String, url:Option[String])
-case class Instance(name:String, group:String, host:String, port:Int, icons:List[Icon], props:List[Prop]) {
+case class Instance(name:String, host:String, port:Int, icons:List[Icon], props:List[Prop]) {
   lazy val prefix = {
     val builder = new StringBuilder()
     for (c <- name) {
@@ -44,12 +44,8 @@ case class Instance(name:String, group:String, host:String, port:Int, icons:List
   }
   lazy val key = prefix.toLowerCase()
   def valueFor(name:String) = {
-    name match {
-      case "group" => group
-      case _ => props.find(_.name.equalsIgnoreCase(name)).map(_.value).getOrElse("Undefined")
-    }
+    props.find(_.name.equalsIgnoreCase(name)).map(_.value).getOrElse("Undefined")
   }
-  def groupKey = group.replaceAll(" ", "_").toLowerCase()
 }
 case class InstanceSnapshot(instance:Instance, isClosed:Boolean) {
   def propNames:Iterable[String] = instance.props.map(_.name)

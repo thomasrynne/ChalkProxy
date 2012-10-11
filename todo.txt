@@ -1,7 +1,6 @@
+Stack trace shown when server is stopped
 Don't block readers while updating watchers after an update
 Colours/Icons in the props area?
-Client jar for registrations
-Use scala-json?
 Drop single line registration requirement
 /public folder
 some more icons

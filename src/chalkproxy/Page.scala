@@ -79,10 +79,10 @@ class Page(val assetsHandler:EmbeddedAssetsHandler) {
   
   def iconHtml(instance:Instance, icon:Icon) = {
     <a class="icon" href={addPrefix(instance, icon.url)}>{
-      if (icon.image == "") {
-        icon.text
-      } else {
-        <img class="iconimage" src={addAssetsPrefix(instance, icon.image)} alt={icon.text}/>
+      icon.image match {
+        case None => icon.text
+        case Some(image) =>
+          <img class="iconimage" src={addAssetsPrefix(instance, image)} alt={icon.text}/>
       }
     }</a>
   }

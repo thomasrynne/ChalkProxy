@@ -107,6 +107,19 @@ class About(registry:Registry, properties:ServerProperties) extends AbstractHand
             <p>ChalkProxy will respond with 'OK' if the registration was sucessful. The registration will remain valid for as
             long as the tcp connection stays open. Whilst connected you can update properties by sending more json:</p>
             <pre>{""" {"name":"status", "value":"Amber", "url":"status"} """}</pre>
+
+            <h2>Java Client</h2>
+            <p>A java client is provided to make registrations easier. You will need chalkproxy-client.jar and json.jar in your
+            classpath. These are both included in the download.</p>
+            <pre><code>
+            import chalkproxy.ChalkProxyClient
+            ...
+            ChalkProxyClient chalkProxyClient = new ChalkProxyClient("chalkproxyhost", "My Server Name", "myhostname", 8080);
+            chalkProxyClient.addProperty("version", "v123");
+            chalkProxyClient.addProperty("status", "OK");
+            chalkProxyClient.addProperty("started", new java.util.Date().toString());
+            chalkProxyClient.start();
+            </code></pre>
             
             <h2>Links</h2>
             <p>A property can optionaly provide a url to make the property a link.</p>

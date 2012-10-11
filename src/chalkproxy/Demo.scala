@@ -44,35 +44,32 @@ class Demo(chalkHostname:String, chalkPort:Int, localHostname:String) {
   
   class SampleServer(port:Int, name:String, group:String, index:Int) {
     val longName = if (index==3) "gjfdkgjfkdgjrk " * 10 else "short"
-    val props = List(
-          ChalkProperty("branch", if ((name.hashCode % 2) == 1) "master" else "release-1.0", Some("http://git/branches/master")),
-          ChalkProperty("commit", "fjfiwj5osj32"),
-          ChalkProperty("pwd", "/home/thomas/code/server/main"), 
-          ChalkProperty("&b=1", "url escaping test"),
-          ChalkProperty("started", "20Apr2012 14:54"),
-          ChalkProperty("Status", "starting"),
-          ChalkProperty("Long", longName),
-          ChalkProperty("headers", "here", Some("headers")),
-          ChalkProperty("pwd", "/home/thomas/code/server/main"), 
-          ChalkProperty("user", "t intentional spaces"),
-          ChalkProperty("started", "20Apr2012 14:54"),
-          ChalkProperty("pid", "2543"))
-    val chalkProxy = new ChalkProxy(
-          chalkHostname, chalkPort, localHostname, port, name, group,
-          ChalkIcon("Launch 2", "/assets/blowfish.png", "/go.jnlp") ::
-          ChalkIcon("ws", "/assets/blowfish.png", "/go.jnlp") ::
-          ChalkIcon("ws", "/assets/blowfish.png", "/go.jnlp") :: 
-          ChalkIcon("p", "", "/go.jnlp") :: Nil,
-          props
-    )
+    val chalkProxy = new ChalkProxyClient(chalkHostname, chalkPort, name, localHostname, port)
+    chalkProxy.addIcon("/go.jnlp", "Launch 2", "/assets/blowfish.png")
+    chalkProxy.addIcon("/go.jnlp", "ws", "/assets/blowfish.png")
+    chalkProxy.addIcon("/go.jnlp", "ws", "/assets/blowfish.png") 
+    chalkProxy.addIcon("/go.jnlp", "p")
+    chalkProxy.addProperty("branch", if ((name.hashCode % 2) == 1) "master" else "release-1.0", "http://git/branches/master")
+    chalkProxy.addProperty("commit", "fjfiwj5osj32")
+    chalkProxy.addProperty("pwd", "/home/thomas/code/server/main") 
+    chalkProxy.addProperty("&b=1", "url escaping test")
+    chalkProxy.addProperty("started", "20Apr2012 14:54")
+    chalkProxy.addProperty("Status", "starting")
+    chalkProxy.addProperty("Long", longName)
+    chalkProxy.addProperty("headers", "here", "headers")
+    chalkProxy.addProperty("pwd", "/home/thomas/code/server/main") 
+    chalkProxy.addProperty("user", "t intentional spaces")
+    chalkProxy.addProperty("started", "20Apr2012 14:54")
+    chalkProxy.addProperty("pid", "2543")
+    
     val webServer = new TestServer(name, port)
     def start() {
         webServer.start()
-    	chalkProxy.start()
+        chalkProxy.start()
     }
-    def isStarted() = chalkProxy.isStarted()
-    def update(prop:ChalkProperty) {
-      chalkProxy.update(prop)
+    def isStarted() = chalkProxy.isStarted
+    def update(name:String, value:String) {
+      chalkProxy.updateProperty(name, value)
     }
     def stop() {
       webServer.stop()
@@ -116,7 +113,7 @@ class Demo(chalkHostname:String, chalkPort:Int, localHostname:String) {
 	    while (true) {
 	      val next = random.nextInt(samples.size)
 	      val register = samples(next)
-	      register.update(ChalkProperty("Status", colors(random.nextInt(colors.size))))
+	      register.update("Status", colors(random.nextInt(colors.size)))
 	      Thread.sleep(500)
 	    }
       }

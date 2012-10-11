@@ -39,11 +39,12 @@ object CreateDistribution {
 
   def main(args:Array[String]) {
     val version = if (args.length == 0) "undefined" else args(0)
-    createOneJar(new File("chalkproxy.jar"))
+    createOneJarServerJar(new File("chalkproxy-server.jar"))
+    createClientJar(new File("chalkproxy-client.jar"))
     createTgz(version, new File("chalkproxy-"+version+".tgz"))
   }
   
-  private def createOneJar(file:File) {
+  private def createOneJarServerJar(file:File) {
     val jar = initJar(file)
     addOneJarBoot(jar)
     addChalkProxyJar(jar)
@@ -52,10 +53,21 @@ object CreateDistribution {
     jar.close()
   }
   
+  private def createClientJar(file:File) {
+    val jar = initJar(file)
+    addDir(jar, "chalkproxy/")
+    new File("out/chalkproxy").listFiles().
+      filter(_.getName.startsWith("ChalkProxyClient")).
+      foreach(f => copyToJar(f, "chalkproxy/", jar))
+    jar.close()
+  }
+  
   private def createTgz(version:String, file:File) {
     val tgz = new TarArchiveOutputStream(
           new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(file))))
-    addFile(tgz, version, new File("chalkproxy.jar"), false)
+    addFile(tgz, version, new File("chalkproxy-server.jar"), false)
+    addFile(tgz, version, new File("chalkproxy-client.jar"), false)
+    addFile(tgz, version, new File("lib/json.jar"), false)
     addFile(tgz, version, new File("start"), true)
     addFile(tgz, version, new File("stop"), true)
     addFile(tgz, version, new File("distribution-jars/readme"), false)

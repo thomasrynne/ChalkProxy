@@ -2,5 +2,6 @@ log
 out
 pid.txt
 .cache
-chalkproxy.jar
+chalkproxy-server.jar
+chalkproxy-client.jar
 chalkproxy*.tgz

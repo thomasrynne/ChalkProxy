@@ -24,14 +24,14 @@ import org.json.JSONArray
 object JsonInstance {
   def createInstance(json:JSONObject) = {
 	  val name = json.getString("name")
-	  val group = json.getString("group")
 	  val hostname = json.getString("hostname")
 	  val port = json.getInt("port")
 	  val icons = {
 	    val iconsJson = if (json.has("icons")) json.getJSONArray("icons") else new JSONArray()
 	    for (i <- 0 until iconsJson.length()) yield {
 	      val iconJson = iconsJson.getJSONObject(i)
-	      Icon(iconJson.getString("text"), iconJson.getString("image"), iconJson.getString("url"))
+	      Icon(iconJson.getString("url"), iconJson.getString("text"), 
+	          if (iconJson.has("image")) Some(iconJson.getString("image")) else None)
 	    }
 	  }.toList
 	  val props = {
@@ -41,7 +41,7 @@ object JsonInstance {
 	      createProp(propJson)
 	    }
 	  }.toList
-	  Instance(name, group, hostname, port, icons, props)
+	  Instance(name, hostname, port, icons, props)
   }
   
   def createProp(propJson:JSONObject) = Prop(propJson.getString("name"), propJson.getString("value"), if (propJson.has("url")) Some(propJson.getString("url")) else None)
