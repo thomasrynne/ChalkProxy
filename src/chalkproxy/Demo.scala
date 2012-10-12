@@ -45,10 +45,10 @@ class Demo(chalkHostname:String, chalkPort:Int, localHostname:String) {
   class SampleServer(port:Int, name:String, group:String, index:Int) {
     val longName = if (index==3) "gjfdkgjfkdgjrk " * 10 else "short"
     val chalkProxy = new ChalkProxyClient(chalkHostname, chalkPort, name, localHostname, port)
-    chalkProxy.addIcon("/go.jnlp", "Launch 2", "/assets/blowfish.png")
-    chalkProxy.addIcon("/go.jnlp", "ws", "/assets/blowfish.png")
-    chalkProxy.addIcon("/go.jnlp", "ws", "/assets/blowfish.png") 
-    chalkProxy.addIcon("/go.jnlp", "p")
+    chalkProxy.addIcon("a", "/go.jnlp", "Launch 2", "/assets/blowfish.png")
+    chalkProxy.addIcon("b", "/go.jnlp", "ws", "/assets/blowfish.png")
+    chalkProxy.addIcon("c", "/go.jnlp", "ws", "/assets/blowfish.png") 
+    chalkProxy.addIcon("d", "/go.jnlp", "p")
     chalkProxy.addProperty("branch", if ((name.hashCode % 2) == 1) "master" else "release-1.0", "http://git/branches/master")
     chalkProxy.addProperty("commit", "fjfiwj5osj32")
     chalkProxy.addProperty("pwd", "/home/thomas/code/server/main") 
@@ -68,8 +68,11 @@ class Demo(chalkHostname:String, chalkPort:Int, localHostname:String) {
         chalkProxy.start()
     }
     def isStarted() = chalkProxy.isStarted
-    def update(name:String, value:String) {
+    def updateProperty(name:String, value:String) {
       chalkProxy.updateProperty(name, value)
+    }
+    def updateIcon(id:String, text:String, link:String, image:String) {
+      chalkProxy.updateIcon(id, text, link, image)
     }
     def stop() {
       webServer.stop()
@@ -108,13 +111,28 @@ class Demo(chalkHostname:String, chalkPort:Int, localHostname:String) {
 	      //Thread.sleep(3000)
 	    }
       }
-      case "update" => {
+      case "update-properties" => {
         samples.foreach(_.start);
 	    while (true) {
 	      val next = random.nextInt(samples.size)
 	      val register = samples(next)
-	      register.update("Status", colors(random.nextInt(colors.size)))
-	      Thread.sleep(500)
+	      register.updateProperty("Status", colors(random.nextInt(colors.size)))
+	      Thread.sleep(1000)
+	    }
+      }
+      case "update-icons" => {
+        samples.foreach(_.start);
+        val server = samples(2)
+	    var fish = true
+	    while (true) {
+	      val iconImage = if (fish) { 
+	        "/assets/blowfish.png" 
+	      } else {
+	         "/assets/tick.png" 
+	      }
+	      fish = !fish
+	      server.updateIcon("b", "x", "link-to", iconImage)
+	      Thread.sleep(4000)
 	    }
       }
       case "start-stop" => {

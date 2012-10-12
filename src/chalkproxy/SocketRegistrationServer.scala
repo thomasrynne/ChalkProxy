@@ -76,8 +76,14 @@ class SocketRegistrationServer(registry:Registry, port:Int) {
 	        ctx.getChannel().write("OK\n")
           }
           case Some(i) => {
-            val prop = JsonInstance.createProp(json)
-            registry.update(i.key, prop)
+            if (json.has("id")) { //should express icon/prop better
+	            val icon = JsonInstance.createIcon(json)
+	            registry.update(i.key, icon)
+              
+            } else {
+	            val prop = JsonInstance.createProp(json)
+	            registry.update(i.key, prop)
+            }
           }
         }
       } catch {

@@ -22,7 +22,11 @@ import org.json.JSONTokener
 import org.json.JSONArray
 
 object JsonInstance {
+  private def optionString(json:JSONObject, name:String) = {
+    if (json.has(name)) Some(json.getString(name)) else None
+  }
   def createInstance(json:JSONObject) = {
+    
 	  val name = json.getString("name")
 	  val hostname = json.getString("hostname")
 	  val port = json.getInt("port")
@@ -30,8 +34,8 @@ object JsonInstance {
 	    val iconsJson = if (json.has("icons")) json.getJSONArray("icons") else new JSONArray()
 	    for (i <- 0 until iconsJson.length()) yield {
 	      val iconJson = iconsJson.getJSONObject(i)
-	      Icon(iconJson.getString("url"), iconJson.getString("text"), 
-	          if (iconJson.has("image")) Some(iconJson.getString("image")) else None)
+	      if (!iconJson.has("id")) iconJson.put("id", "i" + i) //for old servers before id was added
+	      createIcon(iconJson)
 	    }
 	  }.toList
 	  val props = {
@@ -44,5 +48,16 @@ object JsonInstance {
 	  Instance(name, hostname, port, icons, props)
   }
   
-  def createProp(propJson:JSONObject) = Prop(propJson.getString("name"), propJson.getString("value"), if (propJson.has("url")) Some(propJson.getString("url")) else None)
+  def createProp(propJson:JSONObject) = Prop(
+      propJson.getString("name"),
+      propJson.getString("value"),
+      if (propJson.has("url")) Some(propJson.getString("url")) else None
+  )
+  
+  def createIcon(iconJson:JSONObject) = Icon(
+      iconJson.getString("id"),
+      iconJson.getString("text"), 
+      optionString(iconJson, "url"),
+      optionString(iconJson, "image")
+  )
 }

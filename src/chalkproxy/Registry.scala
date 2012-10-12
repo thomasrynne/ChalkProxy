@@ -28,7 +28,7 @@ import scala.collection.JavaConversions._
 class RegisterSession
 
 /* Case classes which form part of the api to Registry */
-case class Icon(url:String, text:String, image:Option[String])
+case class Icon(id:String, text:String, url:Option[String], image:Option[String])
 case class Prop(name:String, value:String, url:Option[String])
 case class Instance(name:String, host:String, port:Int, icons:List[Icon], props:List[Prop]) {
   lazy val prefix = {
@@ -197,6 +197,22 @@ class Registry(val name:String, val page:Page, val defaultView:View) {
     }
   }
 
+  def update(instanceKey:String, icon:Icon) {
+    write {
+	  stateSequence += 1
+      registerSessions.get(instanceKey) match {
+	    case None =>
+	    case Some(instance) => {
+	      val correctedIcons = instance.icons.map {
+	        i => if (i.id == icon.id) icon else i
+	      }
+	      registerSessions = registerSessions + (instanceKey -> instance.copy(icons=correctedIcons))
+	      update(icons = List( instance -> icon ) )
+	    }
+	  }
+    }
+  }
+
   def unregister(instance:Instance) {
     write {
       stateSequence += 1
@@ -210,10 +226,11 @@ class Registry(val name:String, val page:Page, val defaultView:View) {
       disabled:List[Instance]=Nil,
       added:List[String]=Nil,
       props:List[(Instance,Prop)]=Nil,
+      icons:List[(Instance,Icon)]=Nil,
       expired:List[Instance]=Nil) {
     try {
 	  watchers.toArray(Array[Watcher]()).groupBy(_.view).foreach { case (view, w) => {
-	    val json = createJson(enabled, disabled, added, props, expired, view)
+	    val json = createJson(enabled, disabled, added, props, icons, expired, view)
 	    w.foreach(_.notify(json))
 	  } }
     } catch {
@@ -265,6 +282,13 @@ class Registry(val name:String, val page:Page, val defaultView:View) {
     json
   }
   
+  private def createIconJson(instance:Instance, icon:Icon) = {
+    val json = new JSONObject()
+    json.put("key", page.iconId(instance.key, icon))
+    json.put("html", page.iconHtml(instance, icon))
+    json
+  }
+
   private def calculateRemoves(groups:List[Group], view:View, instance:Instance) = {
     view.groupBy match {
       case None => List(page.instanceId(instance.key))
@@ -279,7 +303,7 @@ class Registry(val name:String, val page:Page, val defaultView:View) {
     }
   }
   
-  private def createJson(enabled:List[String], disabled:List[Instance], added:List[String], props:List[(Instance,Prop)], expired:List[Instance], view:View) = {
+  private def createJson(enabled:List[String], disabled:List[Instance], added:List[String], props:List[(Instance,Prop)], icons:List[(Instance,Icon)], expired:List[Instance], view:View) = {
     import scala.collection.JavaConversions
     val (ii, state) = instances
     val groups = page.groups(ii, view)
@@ -296,7 +320,12 @@ class Registry(val name:String, val page:Page, val defaultView:View) {
     json.put("remove", new JSONArray(JavaConversions.asJavaCollection(removeActions.flatMap( instance => {
       calculateRemoves(groups, view, instance)
     }))))
-    json.put("updateProperties", new JSONArray(JavaConversions.asJavaCollection(props.map( t => createPropsJson(t._1, t._2) ))))
+    json.put("updateProperties", new JSONArray(JavaConversions.asJavaCollection(
+        props.map( t => createPropsJson(t._1, t._2) )
+    )))
+    json.put("updateIcons", new JSONArray(JavaConversions.asJavaCollection(
+        icons.map( t => createIconJson(t._1, t._2) )
+    )))
     json
   }
   

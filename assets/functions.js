@@ -69,13 +69,21 @@ $(function() {
           disable(data.disable)
           add(data.add)
           remove(data.remove)
+          jQuery.each(data.updateIcons, function(index, icon) {
+            var ele = $('#'+icon.key)
+            ele.stop()
+            ele.fadeTo(500, 0, function() {
+              ele.html(icon.html)
+              ele.fadeTo(500, 1.0)
+            })
+          })
           jQuery.each(data.updateProperties, function(index, prop) {
             var ele = $('#'+prop.key)
             ele.html(prop.html)
             ele.stop()
 	        ele.css({backgroundColor: '#ffff9C'}).animate({backgroundColor: '#ffffff'}, 20000)
-         })
-      }
+          })
+       }
     }
 
     //-------------

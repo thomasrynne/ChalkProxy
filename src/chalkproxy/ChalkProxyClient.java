@@ -39,16 +39,22 @@ public class ChalkProxyClient {
      * @param url the link for the icon
      * @param text the text for the icon
      */
-    public void addIcon(String url, String text, String imageURL) {
-    	icons.add(new Icon(url, text, imageURL));
+    public void addIcon(String id, String text, String url, String imageURL) {
+    	for (Icon icon: icons) {
+    		if (icon.id == id) throw new IllegalStateException("There is already an icon with the id " + id);
+    	}
+    	icons.add(new Icon(id, text, url, imageURL));
     }
     /**
      * Adds a text based icon to the registration details
      * @param url the link for the icon
      * @param text the text for the icon
      */
-    public void addIcon(String url, String text) {
-    	icons.add(new Icon(url, text, null));
+    public void addIcon(String id, String url, String text) {
+    	addIcon(id, text, url, null);
+    }
+    public void addIcon(String id, String imageURL) {
+    	addIcon(id, null, null, imageURL);
     }
     public void addProperty(String name, String value, String url) {
     	properties.add(new Property(name, value, url));
@@ -89,23 +95,45 @@ public class ChalkProxyClient {
 	 * @param value the new value for the property
 	 */
 	public void updateProperty(String name, String value) {
-		Property found = null;
-		for (Property property : properties) {
-			if (property.name.equals(name)) {
-				property.value = value;
-				found = property;
+		try {
+			Property found = null;
+			for (Property property : properties) {
+				if (property.name.equals(name)) {
+					property.value = value;
+					found = property;
+				}
 			}
-		}
-		if (found == null) throw new IllegalStateException("Property " + name + " not found");
+			if (found == null) throw new IllegalStateException("Property " + name + " not found");
+			sendUpdate(found.json());
+	    } catch (JSONException e) {
+	    	throw new RuntimeException(e);
+	    }
+	}
+	
+	public void updateIcon(String id, String text, String linkURL, String imageURL) {
+		try {
+			Icon found = null;
+			for (Icon icon: icons) {
+				if (icon.id.equals(id)) {
+					icon.text = text;
+					icon.imageURL = imageURL;
+					icon.linkURL = linkURL;
+					found = icon;
+				}
+			}
+			if (found == null) throw new IllegalStateException("Icon " + id + " not found");
+			sendUpdate(found.json());
+	    } catch (JSONException e) {
+	    	throw new RuntimeException(e);
+	    }
+	}
+	
+	private void sendUpdate(final JSONObject json) {
 		Socket s = socket.get();
-		final Property f = found;
 		if (s != null) {
 			try {
-				s.getOutputStream().write((f.json() + "\n").toString().getBytes("utf8"));
-			} catch (IOException e) {
-		    } catch (JSONException e) {
-		    	throw new RuntimeException(e);
-		    }
+				s.getOutputStream().write((json + "\n").toString().getBytes("utf8"));
+			} catch (IOException e) {}
 		}
 	}
 	/**
@@ -125,18 +153,23 @@ public class ChalkProxyClient {
 	}
 
 	class Icon {
-		Icon(String linkURL, String text, String imageURL) {
+		public String id;
+		public String linkURL;
+		public String imageURL;
+		public String text;
+		Icon(String id, String text, String linkURL, String imageURL) {
+			this.id = id;
 			this.linkURL = linkURL;
 			this.imageURL = imageURL;
 			this.text = text;
 		}
-		public String linkURL;
-		public String imageURL;
-		public String text;
 		JSONObject json() throws JSONException {
 			JSONObject json = new JSONObject();
-			json.put("url", linkURL);
-			json.put("text", text);			
+			json.put("id", id);
+			if (linkURL != null) {
+				json.put("url", linkURL);
+			}
+			json.put("text", text);
 			if (imageURL != null) {
 				json.put("image", imageURL);
 			}
@@ -144,14 +177,14 @@ public class ChalkProxyClient {
 		}
 	}
 	class Property {
+		public String name;
+		public String value;
+		public String url;
 		Property(String name, String value, String url) {
 			this.name = name;
 			this.value = value;
 			this.url = url;
 		}
-		public String name;
-		public String value;
-		public String url;
 		JSONObject json() throws JSONException {
 		    JSONObject json = new JSONObject();
 		    json.put("name", name);

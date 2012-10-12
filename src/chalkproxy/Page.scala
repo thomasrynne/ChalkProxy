@@ -78,7 +78,7 @@ class Page(val assetsHandler:EmbeddedAssetsHandler) {
   }
   
   def iconHtml(instance:Instance, icon:Icon) = {
-    <a class="icon" href={addPrefix(instance, icon.url)}>{
+    <a class="icon" href={addPrefix(instance, icon.url.getOrElse(""))}>{
       icon.image match {
         case None => icon.text
         case Some(image) =>
@@ -103,7 +103,8 @@ class Page(val assetsHandler:EmbeddedAssetsHandler) {
     val disconnected = if (!active) " disconnected" else ""
       <div class={"row-fluid instance" + disconnected} id={instanceId(instance.key)}>
         <div class={"span3 main-link" + disable}><a href={"/"+instance.prefix}>{instance.name}</a></div>
-        <div class={"span1 icons" + disable}>{ instance.icons.map { icon => iconHtml(instance, icon) } }</div>
+        <div class={"span1 icons" + disable}>{ instance.icons.map { icon => 
+          <span id={iconId(instance.key, icon)}>{iconHtml(instance, icon) }</span> } }</div>
         <div class={"span8 props" + disable}>{instance.props.map { case prop@Prop(name, _, _) => {
           <span class="prop" id={propId(instance.key, name)}>{propHtml(instance,prop)}</span>++ Text(" ")}
         } }</div>
@@ -183,6 +184,7 @@ class Page(val assetsHandler:EmbeddedAssetsHandler) {
     }
     builder.toString.toLowerCase
   }
+  def iconId(instanceKey:String, icon:Icon) = "icon-" + clean(instanceKey + "-" + icon.id)
   def propId(instanceKey:String, propName:String) = "prop-" + clean(instanceKey + "-" + propName)
   def groupId(group:String) = "group-"+clean(group)
   def instanceId(key:String) = "instance-" + clean(key)
