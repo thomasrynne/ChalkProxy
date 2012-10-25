@@ -65,26 +65,32 @@ class Page(val assetsHandler:EmbeddedAssetsHandler) {
   
   private def addAssetsPrefix(instance:Instance, url:String) = {
     if (url.startsWith("/")) {
-      assetsHandler.url(url) 
+      assetsHandler.url(url)
     } else if (url.contains("://")) {
       url
     } else {
       "/" + instance.prefix + "/" + url
     }
   }
-  
+
   private def addPrefix(instance:Instance, url:String) = {
-    if (url.contains("://")) url else instance.prefix + url
+    if (url.startsWith("/")) url else
+    if (url.contains("://")) url else
+      "/" + instance.prefix + "/" + url
   }
   
   def iconHtml(instance:Instance, icon:Icon) = {
-    <a class="icon" href={addPrefix(instance, icon.url.getOrElse(""))}>{
-      icon.image match {
-        case None => icon.text
-        case Some(image) =>
-          <img class="iconimage" src={addAssetsPrefix(instance, image)} alt={icon.text}/>
-      }
-    }</a>
+    val textOrImage = icon.image match {
+      case Some(image) if (image.trim.nonEmpty) =>
+          <img class="iconimage" src={addAssetsPrefix(instance, image)}
+             alt={icon.text} title={icon.text}/>
+      case _ => Text(icon.text)
+    }
+    icon.url match {
+      case Some(url) if (url.trim.nonEmpty) =>
+        <a class="icon" href={addPrefix(instance, url)}>{textOrImage}</a>
+      case _ => textOrImage
+    }
   }
   
   def propHtml(instance:Instance, prop:Prop):NodeSeq = {

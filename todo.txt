@@ -1,9 +1,10 @@
 Stack trace shown when server is stopped
 Don't block readers while updating watchers after an update
-Colours/Icons in the props area?
 Drop single line registration requirement
 /public folder
 some more icons
 Links for filters
+Preset filters+groups in header
 Show something when there are no instances
+Register with more than one server
 Better build/start/stop script
