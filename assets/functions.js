@@ -26,11 +26,14 @@ $(function() {
           if (existing.size() > 0) {
             existing.stop()
             var height = existing.height()
-            existing.html(value.html)
+            existing.replaceWith(value.html)
+            existing = $('#'+value.key)
             existing.css({height: 'auto'})
             var naturalHeight = existing.height()
             existing.height(height)
-            existing.animate({height: naturalHeight}, {duration: 2000 * (height/naturalHeight)})
+            existing.animate({height: naturalHeight}, {duration: 2000 * (height/naturalHeight),
+              onComplete: function() { existing.css({height: 'auto'}) }
+            })
           } else {
             var ele = $(value.html)
             if (value.after == "") {
@@ -40,7 +43,9 @@ $(function() {
             }
             var height = ele.height()
             ele.height(0)
-            ele.animate({height: height}, {duration: 2000})
+            ele.animate({height: height}, {duration: 2000, complete: function(){
+              ele.css({height: 'auto'})
+            }})
           }
         })
     }
@@ -80,6 +85,7 @@ $(function() {
           jQuery.each(data.updateProperties, function(index, prop) {
             var ele = $('#'+prop.key)
             ele.html(prop.html)
+            ele.parent().parent().css({height: 'auto'})
             ele.stop()
 	        ele.css({backgroundColor: '#ffff9C'}).animate({backgroundColor: '#ffffff'}, 20000)
           })
