@@ -108,7 +108,8 @@ class Page(val assetsHandler:EmbeddedAssetsHandler) {
     val disable= if (!active) " disable" else ""
     val disconnected = if (!active) " disconnected" else ""
       <div class={"row-fluid instance" + disconnected} id={instanceId(instance.key)}>
-        <div class={"span3 main-link" + disable}><a href={"/"+instance.prefix}>{instance.name}</a></div>
+        <div class={"span3 main-link" + disable}><a href={"/"+instance.prefix}>{instance.name}</a>
+          <input type="checkbox" class="checkbox"/></div>
         <div class={"span1 icons" + disable}>{ instance.icons.map { icon => 
           <span id={iconId(instance.key, icon)}>{iconHtml(instance, icon) }</span> } }</div>
         <div class={"span8 props" + disable}>{instance.props.map { case prop@Prop(name, _, _) => {

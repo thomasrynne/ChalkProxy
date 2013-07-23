@@ -1,4 +1,59 @@
 $(function() {
+    var checkedInstances = {}
+    function updateSelectionStyle(instance, checked) {
+      if (checked) {
+        instance.css({"background-color":"#ffff99"})
+        instance.css({"border":"solid 1px black"})
+      } else {
+        instance.css({
+          "background-color":"white",
+          "border": "1px solid white",
+          "border-bottom": "1px solid black"
+        })
+      }
+    }
+
+    function updateFilterLink() {
+      var filter = "?"
+      $.each(checkedInstances, function(key,value) {
+        filter = filter + ":" + value
+      })
+      $("#filter-link").html("<a href='" + filter + "'>Apply Filter</a>")
+    }
+
+    function toggleSelection(instance) {
+        var checkBox = instance.find(".checkbox")
+        var checked = checkBox.is(':checked')
+        checkedInstances[instance.attr('id')] = checked
+        updateSelectionStyle(instance, checked)
+    }
+
+    function setupSelectionHandlers(instances) {
+      instances.each(function(index,value) { console.log(value)})
+      instances.mouseenter(function() {
+        console.log("over")
+        $(this).find(".checkbox").show()
+      })
+      instances.mouseleave(function() {
+        console.log("out")
+        $(this).find(".checkbox").not(":checked").hide()
+      })
+      instances.find('.checkbox').click(function(e) {
+        var thisInstance = $(this).parent().parent()
+        toggleSelection(thisInstance)
+        updateFilterLink()
+      }).each(function(index, instance) {
+        var thisInstance = $(instance).parent().parent()
+        var instanceId = thisInstance.attr('id')
+        if (checkedInstances[instanceId]) {
+          updateSelectionStyle(thisInstance, true)
+          thisInstance.find(".checkbox").prop('checked', true).show()
+        }
+      })
+    }
+
+    setupSelectionHandlers($('.instance'))
+
     var group = $('#groups')
     var animate = function(ele, to) {
           ele.fadeTo(1000, to)
@@ -34,6 +89,7 @@ $(function() {
             existing.animate({height: naturalHeight}, {duration: 2000 * (height/naturalHeight),
               onComplete: function() { existing.css({height: 'auto'}) }
             })
+            setupSelectionHandlers(existing)
           } else {
             var ele = $(value.html)
             if (value.after == "") {
@@ -46,6 +102,7 @@ $(function() {
             ele.animate({height: height}, {duration: 2000, complete: function(){
               ele.css({height: 'auto'})
             }})
+            setupSelectionHandlers(ele)
           }
         })
     }
@@ -63,6 +120,7 @@ $(function() {
           $('#status').html('Connected')
           if (window.STATE !== data.state) {
             group.replaceWith($(data.html))
+            setupSelectionHandlers($('.instance'))
           }
           window.STATE = data.state
         } else {

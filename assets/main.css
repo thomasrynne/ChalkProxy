@@ -20,9 +20,15 @@ h1 {
   margin: 2px;
 }
 .group, .instance { /* adds lines between instances */
- border-bottom: 1px solid black;
+  border: 1px solid white;
+  border-size: 1px;
+  border-style: solid;
+  border-color: black white white white;
 }
-.instance:hover { background-color:#ffffaa; } /* highlight the selected instance */
+.instance:hover { /* highlight the selected instance */
+  background-color:	#ffffcc;
+  border-color: black black black black;
+}
 .main-link { /* make the proxying link text larger than the rest of the text */
   font-size: medium;
 }
@@ -37,7 +43,12 @@ h1 {
   white-space: nowrap; /* prevent linewrap between propery name and value */
 }
 .instance { /* meant to make opacity look better in IE, not sure if it works */
- background-color:white; 
+ background-color:white;
+ border-width: 1px;
+ border-style: solid;
+}
+.checkbox {
+  display: none;
 }
 #status {
   margin-left: 1em;
