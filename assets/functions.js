@@ -8,7 +8,7 @@ $(function() {
         instance.css({
           "background-color":"white",
           "border": "1px solid white",
-          "border-bottom": "1px solid black"
+          "border-top": "1px solid black"
         })
       }
     }
@@ -29,13 +29,10 @@ $(function() {
     }
 
     function setupSelectionHandlers(instances) {
-      instances.each(function(index,value) { console.log(value)})
       instances.mouseenter(function() {
-        console.log("over")
         $(this).find(".checkbox").show()
       })
       instances.mouseleave(function() {
-        console.log("out")
         $(this).find(".checkbox").not(":checked").hide()
       })
       instances.find('.checkbox').click(function(e) {
