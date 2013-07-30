@@ -51,7 +51,7 @@ class Page(val assetsHandler:EmbeddedAssetsHandler) {
     val gs = groups(instances, view)
     val main = {
       gs.flatMap { group => {
-        group.name.toList.map(g => groupHtml(g)) ::: group.instances.map(instanceHtml(_))
+        group.name.toList.map(g => groupHtml(view, g)) ::: group.instances.map(instanceHtml(_))
       } }
     }
     <div id="groups" class="container-fluid">
@@ -59,8 +59,17 @@ class Page(val assetsHandler:EmbeddedAssetsHandler) {
     </div>
   }
   
-  def groupHtml(groupName:String) = {
-    <div class="row-fluid group" id={groupId(groupName)}><h2>{groupName}</h2></div>
+  def groupHtml(view:View, groupName:String) = {
+    val filterView = view.withFilter(groupName)
+    val href = if (view == filterView) None else Some(filterView.href)
+    <div class="row-fluid group" id={groupId(groupName)}><h2>{a(href){Text(groupName)}}</h2></div>
+  }
+
+  def a(href:Option[String])(content: => NodeSeq) = {
+    href match {
+      case Some(_href) => <a href={_href}>{content}</a>
+      case _ => content
+    }
   }
   
   private def addAssetsPrefix(instance:Instance, url:String) = {
@@ -119,7 +128,7 @@ class Page(val assetsHandler:EmbeddedAssetsHandler) {
   }
   def fullPage(title:String, homePage:Boolean, body:NodeSeq, props:List[String], state:Int, serverStartId:Int, view:View, firebugLite:Boolean) = {
     val home = if (homePage) NodeSeq.Empty else Text("[") ++ <a href="/">Home</a> ++ Text("] ")
-    val link = if (view.showLinks) {
+    val topLeft = if (view.showLinks) {
       val groupByText = {
         (None :: props.map(Some(_))).map { p => {
           if (p == view.groupBy) {
@@ -129,16 +138,20 @@ class Page(val assetsHandler:EmbeddedAssetsHandler) {
           }
         } }
       }
-      <span>[<a href={view.hide.href} title="Hide options">hide options</a>]</span> ++ 
+      val filterText = view.filter match {
+        case None => Text("None")
+        case Some(values) => Text("[") ++ <a href={view.clearFilter.href}>X</a> ++ Text("] " + values.mkString(" "))
+      }
+      home ++ <span>[<a href={view.hide.href} title="Hide options">hide options</a>]</span> ++
       <div class="options">
         <div><span>Group by:</span> {groupByText} </div>
+        <div><span>Filter:</span> {filterText}</div>
         <div>Disconnected: {if (view.showDisconnected) <a href={view.hideDisconnected.href}>Hide</a> else <a href={view.showDisconnectedX.href}>Show</a>}</div>
       </div>
     } else {
-      <span>
-        {view.groupBy match { case None => ""; case Some(v) => "Grouped By " + v.capitalize}}
-        [<a href={view.design.href} title="Change group by or show/hide disabed options">options</a>]
-      </span>
+      <div class="option">{home} [<a href={view.design.href} title="Change group by or show/hide disabed options">options</a>]</div>
+      <div class="option">{view.groupBy match { case None => ""; case Some(v) => "Group By: " + v.capitalize}}</div>
+      <div class="option">{view.filter match { case None => ""; case Some(v) => "Filter: " + v.mkString(" ") } }</div>
     }
 <html>
     <head>
@@ -164,7 +177,7 @@ class Page(val assetsHandler:EmbeddedAssetsHandler) {
     <body>
         <div class="container-fluid">
           <div class="row-fluid title">
-            <div class="span3">{home++link}</div>
+            <div class="span3">{topLeft}</div>
             <h1  class="span6">{title}</h1>
             <div class="span3"> [<a href='/About'>About</a>] <span id='status'></span> </div>
           </div>

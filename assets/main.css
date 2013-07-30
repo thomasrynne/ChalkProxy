@@ -40,7 +40,11 @@ h1 {
 }
 
 .prop {
-  white-space: nowrap; /* prevent linewrap between propery name and value */
+  white-space: nowrap; /* prevent line wrap between property name and value */
+}
+.option {
+  white-space: nowrap;
+  margin-bottom: 0;
 }
 .instance { /* meant to make opacity look better in IE, not sure if it works */
  background-color:white;

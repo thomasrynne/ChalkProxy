@@ -57,10 +57,13 @@ case class View(groupBy:Option[String], filter:Option[List[String]], showLinks:B
   def showDisconnectedX = copy(showDisconnected=true)
   def hideDisconnected = copy(showDisconnected=false)
   def by(name:Option[String]) = copy(groupBy=name)
+  def withFilter(value:String) = copy(filter=Some(List(value)))
+  def clearFilter = copy(filter=None)
   def href = "/?"+ params
   def params = {
     (
-      List("groupBy="+URLEncoder.encode(groupBy.getOrElse("None"), "UTF8")) ::: filter.map(v => "filter="+v).toList :::
+      List("groupBy="+URLEncoder.encode(
+        groupBy.getOrElse("None"), "UTF8")) ::: filter.map(v => "filter="+v.mkString(":")).toList :::
       (if(showDisconnected) List("showDisconnected=true") else Nil) :::
       (if(showLinks) List("design=show") else Nil)
     ).mkString("&")
@@ -258,7 +261,7 @@ class Registry(val name:String, val page:Page, val defaultView:View) {
             case (true, _) | (_,None) => Nil
             case (_, Some(v))  => {
               val after = if (groupIndex == 0) "" else page.groupId(groups(groupIndex-1).name.get)
-              List(createJson(page.groupId(v), after, page.groupHtml(v)))
+              List(createJson(page.groupId(v), after, page.groupHtml(view, v)))
             }
           } 
           val ins = {
