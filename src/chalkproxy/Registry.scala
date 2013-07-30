@@ -259,8 +259,8 @@ class Registry(val name:String, val page:Page, val defaultView:View) {
         case Some( (instanceSnapshot,position) ) => {
           val group = (instances.size > 1, name) match {
             case (true, _) | (_,None) => Nil
-            case (_, Some(v))  => {
-              val after = if (groupIndex == 0) "" else page.groupId(groups(groupIndex-1).name.get)
+            case (_, Some(v))  => {  //change the id of the group to the id of the last instance in the group
+              val after = if (groupIndex == 0) "" else groups(groupIndex-1).lastItemId(page)
               List(createJson(page.groupId(v), after, page.groupHtml(view, v)))
             }
           } 

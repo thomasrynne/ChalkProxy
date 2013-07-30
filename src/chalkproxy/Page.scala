@@ -20,7 +20,15 @@ package chalkproxy
 import scala.xml.Text
 import scala.xml.NodeSeq
 
-case class Group(name:Option[String], instances:List[InstanceSnapshot])
+case class Group(name:Option[String], instances:List[InstanceSnapshot]) {
+  def lastItemId(page:Page) = {
+    if (instances.isEmpty) {
+      page.groupId(name.get)
+    } else {
+      page.instanceId(instances.last.instance.key)
+    }
+  }
+}
 /**
  * Holds all the html page generation code
  */
