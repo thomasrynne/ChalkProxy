@@ -56,6 +56,7 @@ class Demo(chalkHostname:String, chalkPort:Int, localHostname:String) {
     chalkProxy.addProperty("started", "20Apr2012 14:54")
     chalkProxy.addProperty("Status", "starting")
     chalkProxy.addProperty("Long", longName)
+    chalkProxy.addProperty("Name", name)
     chalkProxy.addProperty("headers", "here", "headers")
     chalkProxy.addProperty("pwd", "/home/thomas/code/server/main") 
     chalkProxy.addProperty("user", "t intentional spaces")
@@ -80,7 +81,7 @@ class Demo(chalkHostname:String, chalkPort:Int, localHostname:String) {
     }
   } 
   val foo = List("UAT" -> List("Red u@ thomas roo", "House u also quite long"), "Prod" -> List("James p", "Cloud p"), "Dev" -> List("D1", "D9"))
-  val baseServerPort = 5000
+  val baseServerPort = 6000
   val samples = foo.flatMap { case (group, names) => { names.map { name => (name,group) } } }.zipWithIndex.map { case ((name,group), index) => {
     new SampleServer(baseServerPort+index, name, group, index)
   } }.toArray
@@ -104,9 +105,9 @@ class Demo(chalkHostname:String, chalkPort:Int, localHostname:String) {
         samples.foreach(_.start);
 	    val register = samples(4)
 	    while (true) {
-	      Thread.sleep(500)
+	      Thread.sleep(1500)
 	      register.stop()
-	      Thread.sleep(500)
+	      Thread.sleep(1500)
 	      register.start()
 	      //Thread.sleep(3000)
 	    }
