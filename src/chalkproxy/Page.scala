@@ -32,7 +32,7 @@ case class Group(name:Option[String], instances:List[InstanceSnapshot]) {
 /**
  * Holds all the html page generation code
  */
-class Page(val assetsHandler:EmbeddedAssetsHandler) {
+class Page(val assetsHandler:EmbeddedAssetsHandler, links:List[(String,View)]) {
   def groups(instances:List[InstanceSnapshot], view:View) = {
     def sortAndFilter(instances:List[InstanceSnapshot]) = {
      instances.sortBy(_.instance.key).filter { instance => {
@@ -136,6 +136,13 @@ class Page(val assetsHandler:EmbeddedAssetsHandler) {
   }
   def fullPage(title:String, homePage:Boolean, body:NodeSeq, props:List[String], state:Int, serverStartId:Int, view:View, firebugLite:Boolean) = {
     val home = if (homePage) NodeSeq.Empty else Text("[") ++ <a href="/">Home</a> ++ Text("] ")
+    val linksHtml = links.map { case (linkName,linkView) => {
+      if (linkView == view) {
+        Text(" ") ++ <span>{linkName}</span>
+      } else {
+        Text(" ") ++ <a href={linkView.href}>{linkName}</a>
+      }
+    } }
     val topLeft = if (view.showLinks) {
       val groupByText = {
         (None :: props.map(Some(_))).map { p => {
@@ -185,9 +192,11 @@ class Page(val assetsHandler:EmbeddedAssetsHandler) {
     <body>
         <div class="container-fluid">
           <div class="row-fluid title">
-            <div class="span3">{topLeft}</div>
-            <h1  class="span6">{title}</h1>
-            <div class="span3"> [<a href='/About'>About</a>] <span id='status'></span> </div>
+            <div class="span2">{topLeft}</div>
+            <div class="span2">{linksHtml}</div>
+            <h1  class="span4">{title}</h1>
+            <div class="span2">&nbsp;</div>
+            <div class="span2"> [<a href='/About'>About</a>] <span id='status'></span> </div>
           </div>
         </div>
         { body }

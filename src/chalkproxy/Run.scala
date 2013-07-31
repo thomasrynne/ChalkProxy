@@ -21,9 +21,6 @@ import java.io._
 import java.util._
 import javax.servlet.http._
 import org.apache.commons.cli._
-import scala.Option
-import scala.Some
-import scala.None
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.server.nio.SelectChannelConnector
 import org.eclipse.jetty.server.Server
@@ -39,6 +36,7 @@ import org.eclipse.jetty.server.handler.ResourceHandler
 import java.lang.management.ManagementFactory
 import org.eclipse.jetty.util.log.AbstractLogger
 import com.sun.org.apache.bcel.internal.util.ClassLoader
+import scala.io.Source
 
 /**
  * This is the entry point to ChalkProxy.
@@ -70,6 +68,7 @@ object Run {
     if (propertiesFile.exists()) {
       properties.load(new FileInputStream(propertiesFile));
     }
+    val links = parseLinks(propertiesFile)
     commandLine.getOptions.foreach( (option) => {
       if (option.hasArg) {
         val value = commandLine.getOptionValue(option.getLongOpt)
@@ -112,7 +111,7 @@ object Run {
         println("Default view: group by: " + rootView.groupBy + " filter: " + rootView.filter.getOrElse("None"))
         try {
           val assetsHandler = new EmbeddedAssetsHandler 
-          val page = new Page(assetsHandler)
+          val page = new Page(assetsHandler, links)
 	      val registry = new Registry(name, page, rootView)
 	      val serverProperties = ServerProperties(
 	          httpPort, registrationPort, pid,
@@ -141,6 +140,20 @@ object Run {
     writer.write(pid)
     writer.write("\n")
     writer.close()
+  }
+
+  private def split(text:String) = {
+    val eql = text.indexOf('=')
+    (text.substring(0,eql).trim(),text.substring(eql+1).trim())
+  }
+  private def parseLinks(propertiesFile:File) = {
+    val lines = Source.fromFile(propertiesFile).getLines()
+    lines.filter(_.startsWith("link.")).map { case line => {
+      val (key,value) = split(line)
+      val name = key.substring(5)
+      val (groupBy,filter) = split(value)
+      name -> View.create(groupBy, filter, "hide", "false")
+    } }.toList
   }
   
   private def startCleanupTimer(registry:Registry, longPollingHandler:LongPollingHandler) {
