@@ -228,8 +228,8 @@ public class ChalkProxyClient {
 	    if (!response.equals("OK")) {
 	    	System.out.println("Registration failed: " + response);
 	    }
-	    while(keepConnected.get()) {
-	    	reader.readLine();
+        while(response != null && keepConnected.get()) {
+	    	response = reader.readLine();
 	    }
 	}
 	

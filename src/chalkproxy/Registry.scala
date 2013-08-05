@@ -310,8 +310,8 @@ class Registry(val name:String, val page:Page, val defaultView:View) {
     import scala.collection.JavaConversions
     val (ii, state) = instances
     val groups = page.groups(ii, view)
-    val (addActions,enableActions) = if (view.showDisconnected) (added,enabled) else (added:::enabled,Nil) 
-    val (removeActions,disableActions) = if (view.showDisconnected) (expired,disabled) else (expired:::disabled,Nil) 
+    val (addActions,enableActions) = if (view.showDisconnected) (added,enabled) else (added:::enabled,Nil)
+    val (removeActions,disableActions) = if (view.showDisconnected) (expired,disabled) else (expired:::disabled,Nil)
     val json = new JSONObject()
     json.put("messageType", "partial")
     json.put("state", state)

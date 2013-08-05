@@ -26,6 +26,7 @@ import org.eclipse.jetty.server.handler.AbstractHandler
 import org.eclipse.jetty.server.Request
 import org.json.{JSONObject, JSONArray}
 import org.eclipse.jetty.http.HttpHeaders
+import chalkproxy.SocketRegistrationServer
 
 class ProxyHandler(registry:Registry) extends AbstractHandler {
   override def handle(target:String, request:Request, httpRequest:HttpServletRequest, response:HttpServletResponse) {
@@ -63,6 +64,14 @@ class ProxyHandler(registry:Registry) extends AbstractHandler {
            }
         }
     }
+  }
+}
+
+class DisconnectButtonHandler(socketRegistrationServer:SocketRegistrationServer) extends AbstractHandler {
+  override def handle(target:String, request:Request, httpRequest:HttpServletRequest, response:HttpServletResponse) {
+    socketRegistrationServer.disconnectAll()
+    response.sendRedirect("/")
+    request.setHandled(true)
   }
 }
 

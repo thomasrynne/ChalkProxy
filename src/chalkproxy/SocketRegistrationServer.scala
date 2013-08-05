@@ -55,15 +55,22 @@ class SocketRegistrationServer(registry:Registry, port:Int) {
         new NettyRegistrationHandler)
     }
   })
-  //bootstrap.setOption("child.keepAlive", true);
+  val channels = new DefaultChannelGroup()
   
   def start() {
     println("Accepting registrations on port " + port)
     bootstrap.bind(new InetSocketAddress(port))
   }
+
+  def disconnectAll() {
+    channels.disconnect()
+  }
   
   class NettyRegistrationHandler extends SimpleChannelUpstreamHandler {
     var registered:Option[Instance] = None
+    override def channelConnected(ctx:ChannelHandlerContext, e:ChannelStateEvent) {
+      channels.add(e.getChannel())
+    }
     override def messageReceived(ctx:ChannelHandlerContext, e:MessageEvent) {
       val message = e.getMessage().asInstanceOf[String]
       try {

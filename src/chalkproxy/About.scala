@@ -86,7 +86,10 @@ class About(registry:Registry, properties:ServerProperties) extends AbstractHand
                 <tr><td>Currently connected pages (approx)</td><td>{registry.watcherCount}</td></tr>
                 <tr><td>Started</td><td>{properties.started}</td></tr>
               </table>
-            </div>  
+            </div>
+            <h2>Cleanup stale registrations</h2>
+            <p>Pressing <form action="/disconnectAll" method="post"><input type="submit" value="Disconnect all"></input></form>
+              will disconnect all servers. The active servers will reconnect an 5-10 seconds.</p>
             <h2>Registering</h2>
             <p>To register a server with this ChalkProxy connect to port {properties.registrationPort} and send json like the following (but on ONE LINE)</p>
             <pre>{"""{

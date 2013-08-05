@@ -1,18 +1,25 @@
-ChalkProxy - manages test web servers
+ChalkProxy - a registry web servers
 
-ChalkProxy solves the problem of keeping track of multiple test servers
-which run on different machines and/or ports. 
+ChalkProxy solves the problem of keeping track of multiple web servers
+which run on different machines and/or ports with different settings. 
 
-Each server registers with ChalkProxy so that ChalkProxy can show
-a list of all servers and ChalkProxy proxies for them so that the
-URLs includes a meaningful name for the server you are using.
+Each server registers with ChalkProxy on startup and ChalkProxy 
+provides a single page listing all the servers and their settings
+
+Registation is achieved using a tcp connection. You send the registration
+details as json and then keep the connection open. The registration
+remains valid for as long as the connection is open.
+A java client to simplify this is provided.
+
+ChalkProxy also acts as a proxy to the servers so that you can
+use a url starting with the server's name.
 
 Features:
  -Supports IE7+, Chrome & Firefox 
- -Chalkboard page is self updating (you don't have to keep pressing refresh)
- -Servers can register arbitrary properties to include in the page (branch/release/user)
+ -The registry page is self updating (you don't have to keep pressing refresh)
+ -Servers can register arbitrary properties to include in the page (branch/release/hostname)
  -programmatic access to all servers is available at /list
- -/<serverName>/ proxies to the server
+ -/<serverName>/ proxies to the server (but there is no url rewriting)
  
 Requirements:
  -Java 6+
@@ -21,7 +28,7 @@ Requirements:
 Running:
  -git clone https://github.com/thomasrynne/ChalkProxy.git
  -cd ChalkProxy
- -set JAVA_HOME and SCALA_HOME
+ -set JAVA_HOME
  -./compile
  -./run --demo-mode start-stop
     This will run ChalkProxy in demo mode so you will see registrations come and go
@@ -29,4 +36,4 @@ Running:
  -see About (http://localhost:8080/About) for more information on registering servers
  -use ./start and ./stop to leave it running
  
- 
+

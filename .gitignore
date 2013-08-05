@@ -5,3 +5,4 @@ pid.txt
 chalkproxy-server.jar
 chalkproxy-client.jar
 chalkproxy*.tgz
+*.*~

@@ -167,7 +167,7 @@ object Run {
   }
   
   private def start(registry:Registry, properties:ServerProperties) {
-	
+
     new SocketRegistrationServer(registry, properties.registrationPort).start()
     
     val longPollingHandler = new LongPollingHandler(registry)
@@ -178,22 +178,24 @@ object Run {
     //silence info logs (only needed by the TestServer, but must be set early)
     org.eclipse.jetty.util.log.Log.setLog(new NullLogger())
     
-	val server = new Server(properties.httpPort)
+	  val server = new Server(properties.httpPort)
     val assetsHandler = registry.page.assetsHandler	
-	val pageHandler = new PageHandler(registry, assetsHandler)
-	val listHandler = new ListHandler(registry)
-	val aboutHandler = new About(registry, properties)
-	val proxy = new ProxyHandler(registry)
+	  val pageHandler = new PageHandler(registry, assetsHandler)
+	  val listHandler = new ListHandler(registry)
+    val disconnectButtonHandler = new DisconnectButtonHandler(registrationServer)
+	  val aboutHandler = new About(registry, properties)
+	  val proxy = new ProxyHandler(registry)
     val watchWebSocketHandler:AbstractHandler = new WatchWebsocketHandler(registry)
 	
 	server.setHandler(new AbstractHandler() {
 		override def handle(target:String, request:Request, httpRequest:HttpServletRequest, response:HttpServletResponse) {
 		  val handler:AbstractHandler = target match {
-  		    case "/" => pageHandler
-  		    case "/About" => aboutHandler
-  		    case "/all" => pageHandler
-  		    case "/list" => listHandler
-  		    case "/poll" => longPollingHandler
+  		  case "/" => pageHandler
+  		  case "/About" => aboutHandler
+  		  case "/all" => pageHandler
+  		  case "/list" => listHandler
+  		  case "/poll" => longPollingHandler
+        case "/disconnectAll" => disconnectButtonHandler
 		    case _ if (target.startsWith("/watch")) => watchWebSocketHandler
 		    case _ => if (target.startsWith("/assets")) assetsHandler else proxy
 		  }
