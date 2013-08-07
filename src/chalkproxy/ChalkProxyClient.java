@@ -14,6 +14,7 @@ public class ChalkProxyClient {
 	
 	private final AtomicBoolean keepConnected = new AtomicBoolean(false);
 	private final AtomicReference<Socket> socket = new AtomicReference<Socket>(null);
+    private final AtomicReference<Thread> thread = new AtomicReference<Thread>(null);
 	
 	private final String chalkProxyHostname;
 	private final int chalkProxyPort;
@@ -65,7 +66,7 @@ public class ChalkProxyClient {
     public void start() {
     	boolean wasStopped = keepConnected.compareAndSet(false, true);
     	if (!wasStopped) throw new IllegalStateException("Already running");
-		new Thread(new Runnable() { public void run() {
+		Thread t = new Thread(new Runnable() { public void run() {
 			int retryInterval = 5000;
 			while (keepConnected.get()) {
 				try {
@@ -80,7 +81,9 @@ public class ChalkProxyClient {
 		    	  } catch (InterruptedException e) {}
 		        }
 		    }
-	  } }, "ChalkProxy").start();
+	  } }, "ChalkProxy");
+      thread.set(t);
+      t.start();
     }
     /**
      * Indicates wheter this registration is still being made
@@ -143,6 +146,10 @@ public class ChalkProxyClient {
 	 */
 	public void stop() {
 		keepConnected.set(false);
+        Thread t = thread.get();
+        if (t != null) {
+            t.interrupt();
+        }
 	    Socket s = socket.get();
 	    if (s != null) {
 	    	try {
@@ -219,17 +226,19 @@ public class ChalkProxyClient {
 		}
 		return array;
 	}
-	private void connectAndWait() throws SocketException, IOException, JSONException {
+	private void connectAndWait() throws SocketException, IOException, JSONException, InterruptedException {
     	Socket s = new Socket(chalkProxyHostname, chalkProxyPort);
 	    socket.set(s);
-	    s.getOutputStream().write((json() + "\n").getBytes("utf8"));
+        OutputStream outputStream = s.getOutputStream();
+	    outputStream.write((json() + "\n").getBytes("utf8"));
 	    BufferedReader reader = new BufferedReader(new InputStreamReader(s.getInputStream()));
 	    String response = reader.readLine();
 	    if (!response.equals("OK")) {
 	    	System.out.println("Registration failed: " + response);
 	    }
-        while(response != null && keepConnected.get()) {
-	    	response = reader.readLine();
+        while(s.isConnected() && keepConnected.get()) {
+	    	Thread.sleep(10 * 1000);
+            outputStream.write("OK\n".getBytes("utf8"));
 	    }
 	}
 	

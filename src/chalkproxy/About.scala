@@ -81,6 +81,7 @@ class About(registry:Registry, properties:ServerProperties) extends AbstractHand
               <table>
                 <tr><td>Http port</td><td>{properties.httpPort}</td></tr>
                 <tr><td>Registration port</td><td>{properties.registrationPort}</td></tr>
+                <tr><td>(V1 registration port)</td><td>{properties.v1RegistrationPort}</td></tr>
                 <tr><td>PID</td><td>{properties.pid}</td></tr>
                 <tr><td>Pwd</td><td>{properties.pwd}</td></tr>
                 <tr><td>Currently connected pages (approx)</td><td>{registry.watcherCount}</td></tr>
@@ -88,8 +89,8 @@ class About(registry:Registry, properties:ServerProperties) extends AbstractHand
               </table>
             </div>
             <h2>Cleanup stale registrations</h2>
-            <p>Pressing <form action="/disconnectAll" method="post"><input type="submit" value="Disconnect all"></input></form>
-              will disconnect all servers. The active servers will reconnect an 5-10 seconds.</p>
+            <form action="/disconnectAll" method="post">Pressing <input type="submit" value="Disconnect all"></input>
+              will disconnect all servers. The active servers will reconnect an 5-10 seconds.</form>
             <h2>Registering</h2>
             <p>To register a server with this ChalkProxy connect to port {properties.registrationPort} and send json like the following (but on ONE LINE)</p>
             <pre>{"""{
@@ -107,8 +108,8 @@ class About(registry:Registry, properties:ServerProperties) extends AbstractHand
       {"name":"pid","value":"2543"}
     ]
 }"""}</pre>
-            <p>ChalkProxy will respond with 'OK' if the registration was sucessful. The registration will remain valid for as
-            long as the tcp connection stays open. Whilst connected you can update properties by sending more json:</p>
+            <p>ChalkProxy will respond with 'OK' if the registration was sucessful. You then need to send 'OK\n' every 10 seconds
+            to keep the registration active. Whilst connected you can update properties by sending more json:</p>
             <pre>{""" {"name":"status", "value":"Amber", "url":"status"} """}</pre>
 
             <h2>Java Client</h2>

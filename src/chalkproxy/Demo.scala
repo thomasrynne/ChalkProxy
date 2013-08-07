@@ -27,7 +27,7 @@ import org.json.JSONArray
 object Demo {
   def main(args:Array[String]) {
     val hostname = if (args.length > 0) args(0) else "localhost"
-    val port = if (args.length > 1) args(1).toInt else  4000
+    val port = if (args.length > 1) args(1).toInt else  4001
     val mode = if (args.length > 2) args(2) else "start-stop"
     val demo = new Demo(hostname, port, "localhost")
     demo.go(mode)

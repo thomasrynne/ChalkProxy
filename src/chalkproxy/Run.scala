@@ -19,6 +19,7 @@ package chalkproxy
 
 import java.io._
 import java.util._
+import concurrent.Executors
 import javax.servlet.http._
 import org.apache.commons.cli._
 import org.eclipse.jetty.servlet.ServletContextHandler
@@ -37,6 +38,8 @@ import java.lang.management.ManagementFactory
 import org.eclipse.jetty.util.log.AbstractLogger
 import com.sun.org.apache.bcel.internal.util.ClassLoader
 import scala.io.Source
+import org.jboss.netty.handler.timeout.ReadTimeoutHandler
+import org.jboss.netty.util.HashedWheelTimer
 
 /**
  * This is the entry point to ChalkProxy.
@@ -49,7 +52,8 @@ object Run {
     val options = new Options
     options.addOption("p", "http-port", true, "the http port to listen on (default 8080)")    
     options.addOption("f", "file", true, "read settings from a properties file")
-    options.addOption("r", "registation-port", true, "the port for socket registrations (default 4000)")
+    options.addOption("o", "v1-registration-port", true, "the port for v1 socket registrations (default 4000)")
+    options.addOption("r", "registration-port", true, "the port for socket registrations (default 4001)")
     options.addOption("d", "demo-mode", true, "run in demo mode with built in servers (" + Demo.modes.mkString(",") + ")")
     options.addOption("n", "name", true, "The name for this instance of ChalkProxy")
     options.addOption("g", "group-by", true, "Property to group instances by on the home page (by default there is no grouping)")
@@ -92,7 +96,8 @@ object Run {
         writePID()
         val httpPort = Integer.parseInt(properties.getProperty("http-port", "8080"))
         val name = properties.getProperty("name", "Chalk Proxy")
-        val registrationPort = Integer.parseInt(properties.getProperty("registration-port", "4000"))
+        val v1RegistrationPort = Integer.parseInt(properties.getProperty("v1-registration-port", "4000"))
+        val registrationPort = Integer.parseInt(properties.getProperty("registration-port", "4001"))
         val groupBy = properties.getProperty("group-by", "None").trim match { case "None" => None; case x => Some(x) }
         val filter = {
          val value = properties.getProperty("filter", "").trim
@@ -112,9 +117,9 @@ object Run {
         try {
           val assetsHandler = new EmbeddedAssetsHandler 
           val page = new Page(assetsHandler, links)
-	      val registry = new Registry(name, page, rootView)
-	      val serverProperties = ServerProperties(
-	          httpPort, registrationPort, pid,
+  	      val registry = new Registry(name, page, rootView)
+	        val serverProperties = ServerProperties(
+	          httpPort, registrationPort, v1RegistrationPort, pid,
 	          new File(".").getAbsolutePath(),
 	          new java.util.Date().toString)
 	      
@@ -168,8 +173,14 @@ object Run {
   
   private def start(registry:Registry, properties:ServerProperties) {
 
-    new SocketRegistrationServer(registry, properties.registrationPort).start()
-    
+    val threadPool = Executors.newCachedThreadPool()
+    val v1RegistrationServer = new SocketRegistrationServer(registry, properties.v1RegistrationPort, threadPool)
+    v1RegistrationServer.start()
+
+    val timeout = new ReadTimeoutHandler(new HashedWheelTimer(), 20)
+    val registrationServer = new SocketRegistrationServer(registry, properties.registrationPort, threadPool, timeout)
+    registrationServer.start()
+
     val longPollingHandler = new LongPollingHandler(registry)
 
     startCleanupTimer(registry, longPollingHandler)
@@ -178,13 +189,13 @@ object Run {
     //silence info logs (only needed by the TestServer, but must be set early)
     org.eclipse.jetty.util.log.Log.setLog(new NullLogger())
     
-	  val server = new Server(properties.httpPort)
-    val assetsHandler = registry.page.assetsHandler	
-	  val pageHandler = new PageHandler(registry, assetsHandler)
-	  val listHandler = new ListHandler(registry)
-    val disconnectButtonHandler = new DisconnectButtonHandler(registrationServer)
-	  val aboutHandler = new About(registry, properties)
-	  val proxy = new ProxyHandler(registry)
+	val server = new Server(properties.httpPort)
+    val assetsHandler = registry.page.assetsHandler
+	val pageHandler = new PageHandler(registry, assetsHandler)
+	val listHandler = new ListHandler(registry)
+    val disconnectButtonHandler = new DisconnectButtonHandler(registrationServer, v1RegistrationServer)
+	val aboutHandler = new About(registry, properties)
+	val proxy = new ProxyHandler(registry)
     val watchWebSocketHandler:AbstractHandler = new WatchWebsocketHandler(registry)
 	
 	server.setHandler(new AbstractHandler() {

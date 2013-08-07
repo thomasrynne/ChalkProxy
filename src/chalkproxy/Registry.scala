@@ -98,7 +98,7 @@ trait Watcher {
   def view:View
   def isActive:Boolean
 }
-case class ServerProperties(httpPort:Int, registrationPort:Int, pid:String, pwd:String, started:String)
+case class ServerProperties(httpPort:Int, registrationPort:Int, v1RegistrationPort:Int,  pid:String, pwd:String, started:String)
 class DuplicateRegistrationException(message:String) extends Exception(message)
 /**
  * Represents the state of the chalk board

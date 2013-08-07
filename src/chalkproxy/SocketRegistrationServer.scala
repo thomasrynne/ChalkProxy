@@ -17,42 +17,36 @@
 */
 package chalkproxy
 
-import java.util.concurrent.Executors
+import java.util.concurrent.{ExecutorService, Executors}
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory
 import org.jboss.netty.bootstrap.ServerBootstrap
 import org.jboss.netty.channel.group.DefaultChannelGroup
 import org.jboss.netty.handler.codec.frame.DelimiterBasedFrameDecoder
 import org.jboss.netty.handler.codec.frame.Delimiters
-import org.jboss.netty.channel.ChannelPipelineFactory
-import org.jboss.netty.channel.Channels
+import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.string.StringDecoder
 import org.jboss.netty.handler.codec.string.StringEncoder
 import java.net.InetSocketAddress
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler
-import org.jboss.netty.channel.ChannelHandlerContext
-import org.jboss.netty.channel.ChannelStateEvent
-import org.jboss.netty.channel.MessageEvent
 import org.json.JSONObject
 import org.json.JSONTokener
+import org.jboss.netty.handler.timeout.ReadTimeoutException
 
 /**
  * Uses a vanilla plain text socket to accept server registrations.
  * The protocol is the json instance on one line
  * The registration remains active until the socket is closed 
  */
-class SocketRegistrationServer(registry:Registry, port:Int) {
+class SocketRegistrationServer(registry:Registry, port:Int, executorService:ExecutorService, extras:ChannelHandler*) {
  
   val bootstrap = new ServerBootstrap(
-                  new NioServerSocketChannelFactory(
-                          Executors.newCachedThreadPool(),
-                          Executors.newCachedThreadPool()));
+                  new NioServerSocketChannelFactory(executorService, executorService))
   bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
     override def getPipeline() = {
-      Channels.pipeline(
+      Channels.pipeline(extras.toList ::: List(
         new DelimiterBasedFrameDecoder(10000, Delimiters.lineDelimiter() :_*),
         new StringDecoder(),
         new StringEncoder(),
-        new NettyRegistrationHandler)
+        new NettyRegistrationHandler) :_*)
     }
   })
   val channels = new DefaultChannelGroup()
@@ -73,14 +67,15 @@ class SocketRegistrationServer(registry:Registry, port:Int) {
     }
     override def messageReceived(ctx:ChannelHandlerContext, e:MessageEvent) {
       val message = e.getMessage().asInstanceOf[String]
+      if (message == "OK") return
       try {
         val json = new JSONObject(new JSONTokener(message))
         registered match {
           case None => {
-	        val instance = JsonInstance.createInstance(json)
-	        registry.register(instance)
-	        registered = Some(instance)
-	        ctx.getChannel().write("OK\n")
+	          val instance = JsonInstance.createInstance(json)
+	          registry.register(instance)
+	          registered = Some(instance)
+	          ctx.getChannel().write("OK\n")
           }
           case Some(i) => {
             if (json.has("id")) { //should express icon/prop better
@@ -105,6 +100,15 @@ class SocketRegistrationServer(registry:Registry, port:Int) {
         }
       }
     }
+
+    override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
+      if (e.getCause.isInstanceOf[ReadTimeoutException]) {
+        ctx.getChannel().close()
+      } else {
+        e.getCause.printStackTrace()
+      }
+    }
+
     override def channelDisconnected(ctx:ChannelHandlerContext, e:ChannelStateEvent) {
       registered.foreach { instance => {
     	  registry.unregister(instance)
