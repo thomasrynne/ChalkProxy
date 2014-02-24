@@ -139,8 +139,8 @@ class About(registry:Registry, properties:ServerProperties) extends AbstractHand
             and using port 80. It is a bit tedious but at least you only need to do it once and then all the servers
             get pretty urls.</p>
             <p>The following commands might help with forwarding port 8080 to 80.
-               <pre>sudo socat TCP-LISTEN:80,fork TCP:localhost:8080</pre>
-               or<pre>iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8080</pre> 
+               {explainShell("sudo socat TCP-LISTEN:80,fork TCP:localhost:8080")}
+               or {explainShell("iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8080")}
             </p>
             
             <h2>Debug</h2>
@@ -152,4 +152,5 @@ class About(registry:Registry, properties:ServerProperties) extends AbstractHand
     </body>
 </html>
 
+  private def explainShell(command:String) = <pre><a href={"http://explainshell.com/explain?cmd=" + command}>{command}</a></pre>
 }
